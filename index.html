@@ -319,16 +319,21 @@
 // ============================================================================
 
 // --- API Config ---
-const API = {
-  // Polymarket Gamma API (public, no auth needed for market data)
-  polyMarkets: 'https://gamma-api.polymarket.com/markets?limit=100&active=true&closed=false&order=volume24hr&ascending=false',
+// Both APIs lack CORS headers, so we always go through a CORS proxy from the browser.
+// codetabs is reliable; we have fallbacks if it fails.
+const PROXIES = [
+  (u) => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u),
+  (u) => 'https://corsproxy.io/?' + encodeURIComponent(u),
+  (u) => 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u),
+];
+let currentProxy = 0;
+
+const RAW = {
+  polyMarkets: 'https://gamma-api.polymarket.com/markets?limit=100&active=true&closed=false&order=volume24hr&ascending=false&liquidity_num_min=5000',
   polyBook: (tokenId) => `https://clob.polymarket.com/book?token_id=${tokenId}`,
-  polyPrice: (tokenId) => `https://clob.polymarket.com/price?token_id=${tokenId}&side=BUY`,
-  // Kalshi API (public for market data)
-  kalshiMarkets: 'https://api.elections.kalshi.com/trade-api/v2/markets?limit=200&status=open',
+  // Kalshi: use events endpoint with nested markets to get real markets (not MVE combos)
+  kalshiEvents: 'https://api.elections.kalshi.com/trade-api/v2/events?limit=200&with_nested_markets=true&status=open',
   kalshiBook: (ticker) => `https://api.elections.kalshi.com/trade-api/v2/markets/${ticker}/orderbook`,
-  // CORS proxy fallback
-  proxy: 'https://corsproxy.io/?url=',
 };
 
 // --- State ---
@@ -349,7 +354,6 @@ let matchedMarkets = [];
 // Connection state
 let polyConnected = false;
 let kalshiConnected = false;
-let useProxy = {poly:false, kalshi:false};
 let fetchInProgress = false;
 
 // --- Utilities ---
@@ -386,55 +390,82 @@ function matchScore(kwA, kwB) {
   return total > 0 ? matches / total : 0;
 }
 
-// --- API Fetching ---
-async function fetchJSON(url, useProxyFlag) {
-  const fetchUrl = useProxyFlag ? API.proxy + encodeURIComponent(url) : url;
-  const resp = await fetch(fetchUrl);
-  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  return resp.json();
+// --- API Fetching with proxy rotation ---
+async function fetchJSON(rawUrl) {
+  // Try direct first, then each proxy
+  const attempts = [(u) => u, ...PROXIES];
+  for (let i = 0; i < attempts.length; i++) {
+    try {
+      const url = attempts[i](rawUrl);
+      const resp = await fetch(url, {signal: AbortSignal.timeout(12000)});
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      if (i > 0) currentProxy = i - 1; // remember which proxy worked
+      return data;
+    } catch(e) {
+      // try next
+    }
+  }
+  throw new Error('All fetch attempts failed (direct + proxies)');
 }
 
 async function fetchPolymarkets() {
   try {
-    polyMarkets = await fetchJSON(API.polyMarkets, useProxy.poly);
+    let data = await fetchJSON(RAW.polyMarkets);
     // Gamma API returns array directly
-    if (!Array.isArray(polyMarkets)) polyMarkets = polyMarkets.data || polyMarkets.markets || [];
+    if (!Array.isArray(data)) data = data.data || data.markets || [];
+    // Filter to markets with real prices and volume
+    polyMarkets = data.filter(m => {
+      if (!m.active || m.closed) return false;
+      const prices = safeParse(m.outcomePrices, []);
+      const p = parseFloat(prices[0] || 0);
+      return p > 0.01 && p < 0.99 && parseFloat(m.volume24hr || 0) > 0;
+    });
     polyConnected = true;
     setStatus('poly', 'online', `${polyMarkets.length} mkts`);
     addEvent('success', `Polymarket: fetched ${polyMarkets.length} active markets`);
     return true;
   } catch(e) {
-    if (!useProxy.poly) {
-      addEvent('warning', `Polymarket direct failed (CORS), trying proxy...`);
-      useProxy.poly = true;
-      return fetchPolymarkets();
-    }
     polyConnected = false;
     setStatus('poly', 'offline', 'error');
-    addEvent('error', `Polymarket fetch failed: ${e.message}`);
+    addEvent('error', `Polymarket: ${e.message}`);
     return false;
   }
 }
 
 async function fetchKalshiMarkets() {
   try {
-    const data = await fetchJSON(API.kalshiMarkets, useProxy.kalshi);
-    kalshiMarkets = data.markets || data || [];
+    const data = await fetchJSON(RAW.kalshiEvents);
+    const events = data.events || [];
+    // Flatten: extract individual markets from events, skip MVE/provisional
+    kalshiMarkets = [];
+    for (const ev of events) {
+      for (const m of (ev.markets || [])) {
+        if (m.mve_collection_ticker) continue; // skip multi-variate combo markets
+        if (m.is_provisional) continue;
+        const lp = parseFloat(m.last_price_dollars || 0);
+        const yb = parseFloat(m.yes_bid_dollars || 0);
+        const ya = parseFloat(m.yes_ask_dollars || 0);
+        if ((lp > 0.01 && lp < 0.99) || (yb > 0.01 && yb < 0.99)) {
+          kalshiMarkets.push({...m, _eventTitle: ev.title, _eventCategory: ev.category});
+        }
+      }
+    }
     kalshiConnected = true;
     setStatus('kalshi', 'online', `${kalshiMarkets.length} mkts`);
-    addEvent('success', `Kalshi: fetched ${kalshiMarkets.length} open markets`);
+    addEvent('success', `Kalshi: fetched ${kalshiMarkets.length} active markets`);
     return true;
   } catch(e) {
-    if (!useProxy.kalshi) {
-      addEvent('warning', `Kalshi direct failed (CORS), trying proxy...`);
-      useProxy.kalshi = true;
-      return fetchKalshiMarkets();
-    }
     kalshiConnected = false;
     setStatus('kalshi', 'offline', 'error');
-    addEvent('error', `Kalshi fetch failed: ${e.message}`);
+    addEvent('error', `Kalshi: ${e.message}`);
     return false;
   }
+}
+
+function safeParse(str, fallback) {
+  if (Array.isArray(str)) return str;
+  try { return JSON.parse(str); } catch(e) { return fallback; }
 }
 
 function setStatus(platform, status, text) {
@@ -452,26 +483,38 @@ function matchMarkets() {
 
   // Index Kalshi markets by keywords
   const kalshiIndexed = kalshiMarkets
-    .filter(k => k.status === 'open' || k.status === 'active')
-    .map(k => ({
-      ...k,
-      keywords: extractKeywords(k.title || k.subtitle || ''),
-      yesPrice: parseFloat(k.yes_bid || k.last_price || k.yes_ask || 0) * 100,
-    }))
-    .filter(k => k.yesPrice > 0 && k.yesPrice < 100);
+    .filter(k => k.status === 'active' || k.status === 'open')
+    .map(k => {
+      const yb = parseFloat(k.yes_bid_dollars || 0);
+      const ya = parseFloat(k.yes_ask_dollars || 0);
+      const lp = parseFloat(k.last_price_dollars || 0);
+      const yesPrice = ((yb > 0 && ya > 0) ? (yb + ya) / 2 : (lp || yb || ya)) * 100;
+      return {
+        ...k,
+        keywords: extractKeywords((k.title || '') + ' ' + (k._eventTitle || '')),
+        yesPrice,
+        yesBid: yb * 100,
+        yesAsk: ya * 100,
+      };
+    })
+    .filter(k => k.yesPrice > 1 && k.yesPrice < 99);
 
   // For each Polymarket market, find best Kalshi match
   const usedKalshi = new Set();
 
   const polyFiltered = polyMarkets
-    .filter(p => p.active !== false && p.closed !== true)
-    .map(p => ({
-      ...p,
-      keywords: extractKeywords(p.question || p.title || p.description || ''),
-      yesPrice: parseFloat(p.bestBid || p.lastTradePrice || p.outcomePrices?.[0] || 0) * 100 ||
-                parseFloat(p.best_bid || p.last_trade_price || 0) * 100,
-    }))
-    .filter(p => p.yesPrice > 0 && p.yesPrice < 100);
+    .map(p => {
+      const prices = safeParse(p.outcomePrices, []);
+      const yesPrice = parseFloat(prices[0] || 0) * 100;
+      const tokenIds = safeParse(p.clobTokenIds, []);
+      return {
+        ...p,
+        keywords: extractKeywords(p.question || p.title || ''),
+        yesPrice,
+        polyTokenId: tokenIds[0] || null,
+      };
+    })
+    .filter(p => p.yesPrice > 1 && p.yesPrice < 99);
 
   for (const pm of polyFiltered) {
     let bestMatch = null;
@@ -496,7 +539,7 @@ function matchMarkets() {
       else direction = 'Buy Kalshi → Sell Poly';
 
       pairs.push({
-        id: pm.condition_id || pm.id || pm.slug,
+        id: pm.conditionId || pm.id || pm.slug,
         name: pm.question || pm.title || 'Unknown',
         kalshiTicker: bestMatch.ticker,
         kalshiName: bestMatch.title,
@@ -506,9 +549,9 @@ function matchMarkets() {
         direction,
         estProfit: spread * state.maxPos / 100,
         matchScore: bestScore,
-        polyVol: parseFloat(pm.volume24hr || pm.volume || 0),
-        kalshiVol: parseFloat(bestMatch.volume_24h || bestMatch.volume || 0),
-        polyTokenId: pm.clobTokenIds?.[0] || pm.clob_token_ids?.[0] || null,
+        polyVol: parseFloat(pm.volume24hr || 0),
+        kalshiVol: parseFloat(bestMatch.volume_24h_fp || bestMatch.volume_fp || 0),
+        polyTokenId: pm.polyTokenId,
         polyData: pm,
         kalshiData: bestMatch,
         source: 'matched',
@@ -516,11 +559,11 @@ function matchMarkets() {
     }
   }
 
-  // Also add unmatched Polymarket markets (with simulated Kalshi price for display)
+  // Also add unmatched Polymarket markets
   for (const pm of polyFiltered.slice(0, 30)) {
-    if (pairs.find(p => (p.polyData?.condition_id || p.polyData?.id) === (pm.condition_id || pm.id))) continue;
+    if (pairs.find(p => (p.polyData?.conditionId || p.polyData?.id) === (pm.conditionId || pm.id))) continue;
     pairs.push({
-      id: pm.condition_id || pm.id || pm.slug,
+      id: pm.conditionId || pm.id || pm.slug,
       name: pm.question || pm.title || 'Unknown',
       kalshiTicker: null,
       kalshiName: null,
@@ -530,9 +573,9 @@ function matchMarkets() {
       direction: 'Poly only',
       estProfit: 0,
       matchScore: 0,
-      polyVol: parseFloat(pm.volume24hr || pm.volume || 0),
+      polyVol: parseFloat(pm.volume24hr || 0),
       kalshiVol: 0,
-      polyTokenId: pm.clobTokenIds?.[0] || pm.clob_token_ids?.[0] || null,
+      polyTokenId: pm.polyTokenId,
       polyData: pm,
       kalshiData: null,
       source: 'poly-only',
@@ -544,7 +587,7 @@ function matchMarkets() {
     if (usedKalshi.has(km.ticker)) continue;
     pairs.push({
       id: km.ticker,
-      name: km.title || 'Unknown',
+      name: km.title || km._eventTitle || 'Unknown',
       kalshiTicker: km.ticker,
       kalshiName: km.title,
       polyYes: 0,
@@ -554,7 +597,7 @@ function matchMarkets() {
       estProfit: 0,
       matchScore: 0,
       polyVol: 0,
-      kalshiVol: parseFloat(km.volume_24h || km.volume || 0),
+      kalshiVol: parseFloat(km.volume_24h_fp || km.volume_fp || 0),
       polyTokenId: null,
       polyData: null,
       kalshiData: km,
@@ -616,7 +659,7 @@ async function fetchOrderBook(market) {
   // Polymarket order book
   if (market.polyTokenId) {
     try {
-      const data = await fetchJSON(API.polyBook(market.polyTokenId), useProxy.poly);
+      const data = await fetchJSON(RAW.polyBook(market.polyTokenId));
       renderRealOrderBook(data, 'ob-poly');
     } catch(e) {
       renderSyntheticOB(market.polyYes, 'ob-poly');
@@ -628,7 +671,7 @@ async function fetchOrderBook(market) {
   // Kalshi order book
   if (market.kalshiTicker) {
     try {
-      const data = await fetchJSON(API.kalshiBook(market.kalshiTicker), useProxy.kalshi);
+      const data = await fetchJSON(RAW.kalshiBook(market.kalshiTicker));
       renderKalshiOB(data, market.kalshiYes);
     } catch(e) {
       renderSyntheticOB(market.kalshiYes, 'ob-kalshi');
