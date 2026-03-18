@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ArbEdge - Live Polymarket & Kalshi Arbitrage Dashboard</title>
+<title>ArbEdge - BTC 15-Min Arbitrage | Polymarket vs Kalshi</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   :root{
@@ -201,7 +201,7 @@
   <!-- ROW 1 -->
   <div class="panel col-span-2" id="arb-panel" style="position:relative">
     <div class="panel-title">
-      Arbitrage Scanner — Live Cross-Platform Markets
+      BTC 15-Min Arbitrage — Polymarket vs Kalshi
       <div><span class="badge" id="data-badge">CONNECTING...</span></div>
     </div>
     <div class="panel-body">
@@ -329,10 +329,11 @@ const PROXIES = [
 let currentProxy = 0;
 
 const RAW = {
-  polyMarkets: 'https://gamma-api.polymarket.com/markets?limit=100&active=true&closed=false&order=volume24hr&ascending=false&liquidity_num_min=5000',
+  // Polymarket: fetch recent BTC 15-minute up/down markets
+  polyMarkets: 'https://gamma-api.polymarket.com/markets?limit=50&active=true&closed=false&order=createdAt&ascending=false',
   polyBook: (tokenId) => `https://clob.polymarket.com/book?token_id=${tokenId}`,
-  // Kalshi: use events endpoint with nested markets to get real markets (not MVE combos)
-  kalshiEvents: 'https://api.elections.kalshi.com/trade-api/v2/events?limit=200&with_nested_markets=true&status=open',
+  // Kalshi: fetch BTC 15-minute up/down series
+  kalshiEvents: 'https://api.elections.kalshi.com/trade-api/v2/events?limit=50&with_nested_markets=true&status=open&series_ticker=KXBTC15M',
   kalshiBook: (ticker) => `https://api.elections.kalshi.com/trade-api/v2/markets/${ticker}/orderbook`,
 };
 
@@ -347,12 +348,11 @@ const FEES = {
   partialFillRate: 0.85,    // 85% average fill rate on limit orders
 };
 
-// Simulated resolution: each tick = ~1 hour, markets resolve in 3-30 days
+// BTC 15-min markets: each tick = ~1 minute sim time, resolve in 15 minutes
 const SIM_TIME = {
-  ticksPerHour: 1,
-  hoursPerDay: 24,
-  minResolveDays: 3,
-  maxResolveDays: 45,
+  ticksPerMinute: 1,
+  minutesPerHour: 60,
+  resolveMinutes: 15,   // 15-minute markets
 };
 
 // --- State ---
@@ -392,31 +392,6 @@ function randInt(a,b){return Math.floor(rand(a,b+1))}
 function clamp(v,mn,mx){return Math.max(mn,Math.min(mx,v))}
 function timeNow(){return new Date().toLocaleTimeString('en-US',{hour12:false})}
 
-// --- Keyword extraction for market matching ---
-function extractKeywords(text) {
-  const stop = new Set(['the','a','an','in','on','at','to','for','of','by','will','be','is','are','was','were','has','have','had','do','does','did','and','or','but','if','than','that','this','it','its','with','from','as','into','about','above','below','before','after','between','under','over','yes','no','market','contract']);
-  return text.toLowerCase()
-    .replace(/[^a-z0-9\s]/g,' ')
-    .split(/\s+/)
-    .filter(w => w.length > 2 && !stop.has(w));
-}
-
-function matchScore(kwA, kwB) {
-  const setB = new Set(kwB);
-  let matches = 0;
-  for (const w of kwA) {
-    if (setB.has(w)) matches++;
-    else {
-      // Fuzzy: check if any word in B starts with or contains this word
-      for (const b of kwB) {
-        if (b.includes(w) || w.includes(b)) { matches += 0.5; break; }
-      }
-    }
-  }
-  const total = Math.max(kwA.length, kwB.length);
-  return total > 0 ? matches / total : 0;
-}
-
 // --- API Fetching with proxy rotation ---
 async function fetchJSON(rawUrl) {
   // Try direct first, then each proxy
@@ -439,18 +414,16 @@ async function fetchJSON(rawUrl) {
 async function fetchPolymarkets() {
   try {
     let data = await fetchJSON(RAW.polyMarkets);
-    // Gamma API returns array directly
     if (!Array.isArray(data)) data = data.data || data.markets || [];
-    // Filter to markets with real prices and volume
+    // Filter to ONLY BTC 15-minute up/down markets by slug pattern
     polyMarkets = data.filter(m => {
       if (!m.active || m.closed) return false;
-      const prices = safeParse(m.outcomePrices, []);
-      const p = parseFloat(prices[0] || 0);
-      return p > 0.01 && p < 0.99 && parseFloat(m.volume24hr || 0) > 0;
+      const slug = (m.slug || '').toLowerCase();
+      return slug.startsWith('btc-updown-15m');
     });
     polyConnected = true;
-    setStatus('poly', 'online', `${polyMarkets.length} mkts`);
-    addEvent('success', `Polymarket: fetched ${polyMarkets.length} active markets`);
+    setStatus('poly', 'online', `${polyMarkets.length} BTC 15m`);
+    addEvent('success', `Polymarket: ${polyMarkets.length} BTC 15-min markets`);
     return true;
   } catch(e) {
     polyConnected = false;
@@ -464,23 +437,28 @@ async function fetchKalshiMarkets() {
   try {
     const data = await fetchJSON(RAW.kalshiEvents);
     const events = data.events || [];
-    // Flatten: extract individual markets from events, skip MVE/provisional
+    // Extract BTC 15-minute up/down markets from KXBTC15M series
     kalshiMarkets = [];
     for (const ev of events) {
       for (const m of (ev.markets || [])) {
-        if (m.mve_collection_ticker) continue; // skip multi-variate combo markets
         if (m.is_provisional) continue;
-        const lp = parseFloat(m.last_price_dollars || 0);
         const yb = parseFloat(m.yes_bid_dollars || 0);
         const ya = parseFloat(m.yes_ask_dollars || 0);
+        const lp = parseFloat(m.last_price_dollars || 0);
         if ((lp > 0.01 && lp < 0.99) || (yb > 0.01 && yb < 0.99)) {
-          kalshiMarkets.push({...m, _eventTitle: ev.title, _eventCategory: ev.category});
+          kalshiMarkets.push({
+            ...m,
+            _eventTitle: ev.title,
+            _eventSubtitle: ev.sub_title || '',
+            _eventCategory: ev.category,
+            _strikeDate: ev.strike_date,
+          });
         }
       }
     }
     kalshiConnected = true;
-    setStatus('kalshi', 'online', `${kalshiMarkets.length} mkts`);
-    addEvent('success', `Kalshi: fetched ${kalshiMarkets.length} active markets`);
+    setStatus('kalshi', 'online', `${kalshiMarkets.length} BTC 15m`);
+    addEvent('success', `Kalshi: ${kalshiMarkets.length} BTC 15-min markets`);
     return true;
   } catch(e) {
     kalshiConnected = false;
@@ -502,14 +480,46 @@ function setStatus(platform, status, text) {
   label.textContent = text;
 }
 
-// --- Market Matching Engine ---
+// --- BTC 15-Min Time Window Matching Engine ---
+// Extract the 15-minute window start time from Polymarket slug or question
+function extractPolyTimeWindow(pm) {
+  // Slug format: btc-updown-15m-{unix_timestamp}
+  const slug = pm.slug || '';
+  const match = slug.match(/btc-updown-15m-(\d+)/);
+  if (match) return parseInt(match[1]) * 1000; // convert to ms
+  // Fallback: parse from question "March 18, 11:15PM-11:30PM ET"
+  const endDate = pm.endDate || pm.end_date_iso;
+  if (endDate) return new Date(endDate).getTime() - 15 * 60 * 1000;
+  return 0;
+}
+
+// Extract time window from Kalshi market close_time
+function extractKalshiTimeWindow(km) {
+  const closeTime = km.close_time || km._strikeDate;
+  if (closeTime) return new Date(closeTime).getTime() - 15 * 60 * 1000;
+  return 0;
+}
+
 function matchMarkets() {
   if (polyMarkets.length === 0 && kalshiMarkets.length === 0) return;
 
   const pairs = [];
 
-  // Index Kalshi markets by keywords
-  const kalshiIndexed = kalshiMarkets
+  // Process Polymarket BTC 15m markets
+  const polyProcessed = polyMarkets.map(p => {
+    const prices = safeParse(p.outcomePrices, []);
+    const yesPrice = parseFloat(prices[0] || 0) * 100; // "Up" price in cents
+    const tokenIds = safeParse(p.clobTokenIds, []);
+    return {
+      ...p,
+      yesPrice,
+      polyTokenId: tokenIds[0] || null,
+      timeWindow: extractPolyTimeWindow(p),
+    };
+  }).filter(p => p.timeWindow > 0);
+
+  // Process Kalshi BTC 15m markets
+  const kalshiProcessed = kalshiMarkets
     .filter(k => k.status === 'active' || k.status === 'open')
     .map(k => {
       const yb = parseFloat(k.yes_bid_dollars || 0);
@@ -518,45 +528,37 @@ function matchMarkets() {
       const yesPrice = ((yb > 0 && ya > 0) ? (yb + ya) / 2 : (lp || yb || ya)) * 100;
       return {
         ...k,
-        keywords: extractKeywords((k.title || '') + ' ' + (k._eventTitle || '')),
         yesPrice,
         yesBid: yb * 100,
         yesAsk: ya * 100,
+        timeWindow: extractKalshiTimeWindow(k),
       };
     })
-    .filter(k => k.yesPrice > 1 && k.yesPrice < 99);
+    .filter(k => k.yesPrice > 1 && k.yesPrice < 99 && k.timeWindow > 0);
 
-  // For each Polymarket market, find best Kalshi match
+  // Match by time window — same 15-minute window on both platforms
   const usedKalshi = new Set();
 
-  const polyFiltered = polyMarkets
-    .map(p => {
-      const prices = safeParse(p.outcomePrices, []);
-      const yesPrice = parseFloat(prices[0] || 0) * 100;
-      const tokenIds = safeParse(p.clobTokenIds, []);
-      return {
-        ...p,
-        keywords: extractKeywords(p.question || p.title || ''),
-        yesPrice,
-        polyTokenId: tokenIds[0] || null,
-      };
-    })
-    .filter(p => p.yesPrice > 1 && p.yesPrice < 99);
-
-  for (const pm of polyFiltered) {
+  for (const pm of polyProcessed) {
     let bestMatch = null;
-    let bestScore = 0;
+    let bestTimeDiff = Infinity;
 
-    for (const km of kalshiIndexed) {
+    for (const km of kalshiProcessed) {
       if (usedKalshi.has(km.ticker)) continue;
-      const score = matchScore(pm.keywords, km.keywords);
-      if (score > bestScore) {
-        bestScore = score;
+      // Match if time windows are within 2 minutes of each other (same 15-min slot)
+      const timeDiff = Math.abs(pm.timeWindow - km.timeWindow);
+      if (timeDiff < 2 * 60 * 1000 && timeDiff < bestTimeDiff) {
+        bestTimeDiff = timeDiff;
         bestMatch = km;
       }
     }
 
-    if (bestMatch && bestScore >= 0.25) {
+    const question = pm.question || pm.title || 'BTC 15m Up/Down';
+    // Extract just the time portion for display
+    const timeMatch = question.match(/(\d{1,2}:\d{2}[AP]M\s*-\s*\d{1,2}:\d{2}[AP]M\s*ET)/i);
+    const timeLabel = timeMatch ? timeMatch[1] : '';
+
+    if (bestMatch) {
       usedKalshi.add(bestMatch.ticker);
       const polyPrice = pm.yesPrice;
       const kalshiPrice = bestMatch.yesPrice;
@@ -567,7 +569,7 @@ function matchMarkets() {
 
       pairs.push({
         id: pm.conditionId || pm.id || pm.slug,
-        name: pm.question || pm.title || 'Unknown',
+        name: `BTC 15m ${timeLabel}`,
         kalshiTicker: bestMatch.ticker,
         kalshiName: bestMatch.title,
         polyYes: polyPrice,
@@ -575,68 +577,53 @@ function matchMarkets() {
         spread,
         direction,
         estProfit: spread * state.maxPos / 100,
-        matchScore: bestScore,
-        polyVol: parseFloat(pm.volume24hr || 0),
+        matchScore: 1.0,
+        polyVol: parseFloat(pm.volume24hr || pm.volume || 0),
         kalshiVol: parseFloat(bestMatch.volume_24h_fp || bestMatch.volume_fp || 0),
         polyTokenId: pm.polyTokenId,
         polyData: pm,
         kalshiData: bestMatch,
         source: 'matched',
+        timeWindow: pm.timeWindow,
+      });
+    } else {
+      // Poly-only (no Kalshi match for this time window)
+      pairs.push({
+        id: pm.conditionId || pm.id || pm.slug,
+        name: `BTC 15m ${timeLabel}`,
+        kalshiTicker: null, kalshiName: null,
+        polyYes: pm.yesPrice, kalshiYes: 0,
+        spread: 0, direction: 'Poly only', estProfit: 0, matchScore: 0,
+        polyVol: parseFloat(pm.volume24hr || pm.volume || 0), kalshiVol: 0,
+        polyTokenId: pm.polyTokenId,
+        polyData: pm, kalshiData: null,
+        source: 'poly-only', timeWindow: pm.timeWindow,
       });
     }
   }
 
-  // Also add unmatched Polymarket markets
-  for (const pm of polyFiltered.slice(0, 30)) {
-    if (pairs.find(p => (p.polyData?.conditionId || p.polyData?.id) === (pm.conditionId || pm.id))) continue;
-    pairs.push({
-      id: pm.conditionId || pm.id || pm.slug,
-      name: pm.question || pm.title || 'Unknown',
-      kalshiTicker: null,
-      kalshiName: null,
-      polyYes: pm.yesPrice,
-      kalshiYes: 0,
-      spread: 0,
-      direction: 'Poly only',
-      estProfit: 0,
-      matchScore: 0,
-      polyVol: parseFloat(pm.volume24hr || 0),
-      kalshiVol: 0,
-      polyTokenId: pm.polyTokenId,
-      polyData: pm,
-      kalshiData: null,
-      source: 'poly-only',
-    });
-  }
-
   // Add unmatched Kalshi markets
-  for (const km of kalshiIndexed.slice(0, 30)) {
+  for (const km of kalshiProcessed) {
     if (usedKalshi.has(km.ticker)) continue;
+    const subtitle = km._eventSubtitle || '';
     pairs.push({
       id: km.ticker,
-      name: km.title || km._eventTitle || 'Unknown',
-      kalshiTicker: km.ticker,
-      kalshiName: km.title,
-      polyYes: 0,
-      kalshiYes: km.yesPrice,
-      spread: 0,
-      direction: 'Kalshi only',
-      estProfit: 0,
-      matchScore: 0,
-      polyVol: 0,
-      kalshiVol: parseFloat(km.volume_24h_fp || km.volume_fp || 0),
-      polyTokenId: null,
-      polyData: null,
-      kalshiData: km,
-      source: 'kalshi-only',
+      name: `BTC 15m ${subtitle}`,
+      kalshiTicker: km.ticker, kalshiName: km.title,
+      polyYes: 0, kalshiYes: km.yesPrice,
+      spread: 0, direction: 'Kalshi only', estProfit: 0, matchScore: 0,
+      polyVol: 0, kalshiVol: parseFloat(km.volume_24h_fp || km.volume_fp || 0),
+      polyTokenId: null, polyData: null, kalshiData: km,
+      source: 'kalshi-only', timeWindow: km.timeWindow,
     });
   }
 
-  // Sort: matched pairs with spread first, then by spread desc
+  // Sort: matched pairs with spread first, then by time window
   pairs.sort((a, b) => {
     if (a.source === 'matched' && b.source !== 'matched') return -1;
     if (b.source === 'matched' && a.source !== 'matched') return 1;
-    return b.spread - a.spread;
+    if (a.source === 'matched' && b.source === 'matched') return b.spread - a.spread;
+    return b.timeWindow - a.timeWindow;
   });
 
   matchedMarkets = pairs;
@@ -829,10 +816,9 @@ function simulateFill(contracts) {
   return Math.max(1, Math.floor(contracts * clamp(fillPct, 0.5, 1.0)));
 }
 
-// Assign a simulated resolution time to each position (in ticks = hours)
+// BTC 15-min: resolution is always 15 minutes (15 ticks at 1 tick/min)
 function assignResolutionTime() {
-  const days = rand(SIM_TIME.minResolveDays, SIM_TIME.maxResolveDays);
-  return Math.floor(days * SIM_TIME.hoursPerDay * SIM_TIME.ticksPerHour);
+  return SIM_TIME.resolveMinutes * SIM_TIME.ticksPerMinute;
 }
 
 function tryExecuteArbs() {
@@ -885,13 +871,15 @@ function tryExecuteArbs() {
 
     // Determine resolution time
     const resolveTicks = assignResolutionTime();
-    const resolveDays = resolveTicks / (SIM_TIME.hoursPerDay * SIM_TIME.ticksPerHour);
+    const resolveMinutes = resolveTicks / SIM_TIME.ticksPerMinute;
 
     // Guaranteed arb profit = (sellPrice - buyPrice) * contracts (at resolution)
     // Minus fees already paid. This is the locked-in profit IF held to resolution.
     const grossProfit = realSpread * contracts / 100;
     const netProfit = grossProfit - fees;
-    const annualizedROI = (netProfit / totalCost) * (365 / resolveDays) * 100;
+    // Annualized: 15-min markets resolve ~35,040 times/year
+    const turnsPerYear = (365 * 24 * 60) / resolveMinutes;
+    const annualizedROI = (netProfit / totalCost) * turnsPerYear * 100;
 
     state.positions.push({
       id:Date.now()+Math.random(), marketId:m.id, marketName:m.name,
@@ -902,7 +890,7 @@ function tryExecuteArbs() {
       buyCost, fees, slippageCost,
       entryTick:state.tick, side:'LONG',
       resolveTick: state.tick + resolveTicks,  // when market resolves
-      resolveDays: resolveDays,
+      resolveMinutes: resolveMinutes,
       lockedProfit: netProfit,                  // guaranteed if held to resolution
       annualizedROI: annualizedROI,
       exitReason: null,
@@ -911,7 +899,7 @@ function tryExecuteArbs() {
     const fillPct = Math.round(contracts / idealContracts * 100);
     addTrade('BUY', m.name.slice(0,40), buyPlat, adjBuyPrice, totalCost, 0);
     addEvent('success',
-      `Opened: ${m.name.slice(0,35)} | ${fmt(realSpread)}¢ spread | ${fillPct}% filled | resolves ~${Math.round(resolveDays)}d | fees $${fmt(fees)}`
+      `Opened: ${m.name.slice(0,35)} | ${fmt(realSpread)}¢ spread | ${fillPct}% filled | resolves ${Math.round(resolveMinutes)}m | fees $${fmt(fees)}`
     );
   });
 }
@@ -921,23 +909,19 @@ function managePositions() {
   state.positions.forEach((pos, i) => {
     const m = matchedMarkets.find(mm => mm.id === pos.marketId);
     const holdTicks = state.tick - pos.entryTick;
-    const holdDays = holdTicks / (SIM_TIME.hoursPerDay * SIM_TIME.ticksPerHour);
+    const holdMinutes = holdTicks / SIM_TIME.ticksPerMinute;
 
-    // --- Primary mode: HOLD TO RESOLUTION ---
-    // Market resolves — collect guaranteed arb profit
+    // --- Primary mode: HOLD TO RESOLUTION (15 minutes) ---
     if (state.tick >= pos.resolveTick) {
-      // At resolution, one side pays $1, other side pays $0
-      // Your locked arb profit = spread at entry (already net of slippage)
-      // We already deducted fees at entry, so payout = buyCost + netProfit
       const pnl = pos.lockedProfit;
-      state.balance += pos.buyCost + pnl + pos.fees; // return cost basis + profit (fees were deducted at entry)
+      state.balance += pos.buyCost + pnl + pos.fees;
       state.realizedPnl += pnl;
       if (pnl >= 0) state.wins++; else state.losses++;
-      state.closedHoldTimes.push(holdDays);
+      state.closedHoldTimes.push(holdMinutes);
       pos.exitReason = 'RESOLVED';
       addTrade('SETTLE', pos.marketName.slice(0,40), 'Both', 100, pos.buyCost + pnl, pnl);
       addEvent(pnl >= 0 ? 'success' : 'warning',
-        `Resolved: ${pos.marketName.slice(0,35)} | ${fmtUsd(pnl)} after ${Math.round(holdDays)}d | ROI ${fmt(pos.annualizedROI)}% ann.`
+        `Resolved: ${pos.marketName.slice(0,35)} | ${fmtUsd(pnl)} after ${Math.round(holdMinutes)}m | ROI ${fmt(pos.annualizedROI)}% ann.`
       );
       toClose.push(i);
       return;
@@ -962,18 +946,18 @@ function managePositions() {
       state.balance += pos.buyCost + netEarly + pos.fees;
       state.realizedPnl += netEarly;
       if (netEarly >= 0) state.wins++; else state.losses++;
-      state.closedHoldTimes.push(holdDays);
+      state.closedHoldTimes.push(holdMinutes);
       pos.exitReason = 'CONVERGED';
       addTrade('SELL', pos.marketName.slice(0,40), pos.sellPlatform, pos.buyPrice, pos.buyCost + netEarly, netEarly);
       addEvent(netEarly >= 0 ? 'success' : 'warning',
-        `Early exit (converged): ${pos.marketName.slice(0,30)} | ${fmtUsd(netEarly)} in ${Math.round(holdDays)}d`
+        `Early exit (converged): ${pos.marketName.slice(0,30)} | ${fmtUsd(netEarly)} in ${Math.round(holdMinutes)}m`
       );
       toClose.push(i);
       return;
     }
 
     // Stop loss: spread reversed badly — cut losses on scalp mode
-    if (spreadReversed && state.strategy === 'scalp' && holdTicks > 48) {
+    if (spreadReversed && state.strategy === 'scalp' && holdTicks > 5) {
       const lossAmt = -(pos.entrySpread * pos.contracts / 100 * rand(0.3, 0.8));
       const exitFees = calcTradeFees(pos.buyPlatform, pos.contracts, pos.buyPrice, pos.sellPrice) * 0.5;
       state.totalFeesPaid += exitFees;
@@ -981,7 +965,7 @@ function managePositions() {
       state.balance += pos.buyCost + netLoss + pos.fees;
       state.realizedPnl += netLoss;
       state.losses++;
-      state.closedHoldTimes.push(holdDays);
+      state.closedHoldTimes.push(holdMinutes);
       pos.exitReason = 'STOP_LOSS';
       addTrade('SELL', pos.marketName.slice(0,40), pos.sellPlatform, pos.buyPrice, pos.buyCost + netLoss, netLoss);
       addEvent('error',
@@ -1015,11 +999,16 @@ function drawEquityChart() {
 
   const data=state.equityCurve.slice(-200);
   if(data.length<2)return;
-  const min=Math.min(...data)*0.998,max=Math.max(...data)*1.002,range=max-min||1;
+  // Autoscale: find true min/max with 1% padding
+  const dataMin=Math.min(...data), dataMax=Math.max(...data);
+  const pad=Math.max((dataMax-dataMin)*0.05, 1); // at least $1 padding
+  const min=dataMin-pad, max=dataMax+pad, range=max-min||1;
 
+  // Draw gridlines with autoscaled labels
   ctx.strokeStyle='rgba(42,53,80,0.4)';ctx.lineWidth=0.5;
-  for(let i=0;i<4;i++){const y=H*i/3;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
-    ctx.fillStyle='#64748b';ctx.font='9px monospace';ctx.fillText('$'+fmt(max-range*i/3,0),2,y+10);}
+  const gridLines=4;
+  for(let i=0;i<=gridLines;i++){const y=H*i/gridLines;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+    ctx.fillStyle='#64748b';ctx.font='9px monospace';ctx.fillText('$'+fmt(max-range*i/gridLines,0),2,y+10);}
 
   const last=data[data.length-1],isUp=last>=state.startBalance;
   const grad=ctx.createLinearGradient(0,0,0,H);
@@ -1045,12 +1034,22 @@ function drawSpreadChart() {
 
   const data=state.spreadHistory.slice(-120);
   if(data.length<2)return;
-  const max=Math.max(...data,state.minSpread*1.5);
+  // Autoscale: true min/max with padding
+  const dataMax=Math.max(...data,state.minSpread*1.2);
+  const dataMin=Math.min(...data,0);
+  const pad=Math.max((dataMax-dataMin)*0.1, 0.5);
+  const max=dataMax+pad;
 
+  // Threshold line
   const threshY=H-(state.minSpread/max)*H;
   ctx.strokeStyle='rgba(245,158,11,0.4)';ctx.setLineDash([3,3]);
   ctx.beginPath();ctx.moveTo(0,threshY);ctx.lineTo(W,threshY);ctx.stroke();ctx.setLineDash([]);
   ctx.fillStyle='#f59e0b';ctx.font='9px monospace';ctx.fillText(`Min: ${state.minSpread}%`,W-60,threshY-3);
+
+  // Y-axis labels (autoscaled)
+  ctx.strokeStyle='rgba(42,53,80,0.3)';ctx.lineWidth=0.5;
+  for(let i=0;i<=3;i++){const val=max*(1-i/3);const y=H*i/3;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+    ctx.fillStyle='#64748b';ctx.font='8px monospace';ctx.fillText(fmt(val,1)+'%',2,y+9);}
 
   const bw=Math.max(2,W/data.length-1);
   data.forEach((v,i)=>{
@@ -1104,9 +1103,9 @@ function renderPositions() {
   let html='',totalU=0,totalLocked=0;
   state.positions.forEach(pos=>{
     const ticksLeft = pos.resolveTick - state.tick;
-    const daysLeft = Math.max(0, ticksLeft / (SIM_TIME.hoursPerDay * SIM_TIME.ticksPerHour));
+    const minsLeft = Math.max(0, ticksLeft / SIM_TIME.ticksPerMinute);
     const pctDone = clamp((state.tick - pos.entryTick) / (pos.resolveTick - pos.entryTick) * 100, 0, 100);
-    totalU += pos.lockedProfit; // unrealized = locked profit (guaranteed at resolution)
+    totalU += pos.lockedProfit;
     totalLocked += pos.cost;
     const roiColor = pos.annualizedROI > 20 ? 'var(--green)' : pos.annualizedROI > 5 ? 'var(--yellow)' : 'var(--red)';
     html+=`<tr>
@@ -1114,7 +1113,7 @@ function renderPositions() {
       <td style="color:${pos.buyPlatform==='Polymarket'?'var(--poly)':'var(--kalshi)'}">${pos.buyPlatform.slice(0,4)}</td>
       <td>${fmt(pos.buyPrice)}¢</td>
       <td>${fmtUsdAbs(pos.cost)}</td>
-      <td><span style="font-size:9px">${Math.round(daysLeft)}d</span> <div style="height:2px;background:var(--surface3);border-radius:1px;margin-top:1px"><div style="height:100%;width:${pctDone}%;background:var(--green);border-radius:1px"></div></div></td>
+      <td><span style="font-size:9px">${Math.round(minsLeft)}m</span> <div style="height:2px;background:var(--surface3);border-radius:1px;margin-top:1px"><div style="height:100%;width:${pctDone}%;background:var(--green);border-radius:1px"></div></div></td>
       <td style="color:var(--green);font-weight:600">${fmtUsd(pos.lockedProfit)}</td>
       <td style="color:${roiColor};font-weight:600">${fmt(pos.annualizedROI,0)}%</td>
     </tr>`;
@@ -1169,7 +1168,7 @@ function renderRisk() {
   // Average hold time
   const avgHold = state.closedHoldTimes.length > 0
     ? state.closedHoldTimes.reduce((s,v)=>s+v,0) / state.closedHoldTimes.length : 0;
-  document.getElementById('risk-margin').textContent = avgHold > 0 ? fmt(avgHold,1)+'d' : '--';
+  document.getElementById('risk-margin').textContent = avgHold > 0 ? fmt(avgHold,0)+'m' : '--';
 
   // Annualized ROI across all positions
   const allROIs = state.positions.map(p => p.annualizedROI);
@@ -1184,7 +1183,7 @@ function renderRisk() {
   setM('risk-dd-fill',state.maxDrawdown,[5,15]);
   setM('risk-var-fill',state.totalFeesPaid/state.startBalance*100,[2,5]);
   setM('risk-corr-fill',state.totalSlippage/state.startBalance*100,[1,3]);
-  setM('risk-margin-fill',avgHold > 0 ? avgHold/30*100 : 0,[50,80]);
+  setM('risk-margin-fill',avgHold > 0 ? avgHold/15*100 : 0,[50,80]);
   setM('risk-hedge-fill',avgROI > 0 ? clamp(avgROI/50*100,0,100) : 0,[20,40]);
 }
 
@@ -1220,7 +1219,7 @@ function renderAll() {
 }
 
 function renderStatusBar() {
-  document.getElementById('tick-count').textContent=`Day ${state.simDay}, Hr ${state.simHour}`;
+  document.getElementById('tick-count').textContent=`${state.tick}m sim`;
   document.getElementById('next-refresh').textContent=state.nextRefreshIn+'s';
 }
 
@@ -1231,12 +1230,9 @@ function tick() {
   state.tick++;
   state.nextRefreshIn--;
 
-  // Track simulated time (each tick = 1 hour)
-  state.simHour++;
-  if (state.simHour >= SIM_TIME.hoursPerDay) {
-    state.simHour = 0;
-    state.simDay++;
-  }
+  // Track simulated time (each tick = 1 minute)
+  state.simHour = Math.floor(state.tick / SIM_TIME.minutesPerHour);
+  state.simDay = Math.floor(state.simHour / 24);
 
   // Auto-refresh market data
   if (state.nextRefreshIn <= 0) {
@@ -1288,8 +1284,8 @@ document.getElementById('btn-refresh').addEventListener('click',()=>{state.nextR
 document.querySelectorAll('[data-strat]').forEach(btn=>{btn.addEventListener('click',e=>{document.querySelectorAll('[data-strat]').forEach(b=>b.classList.remove('active'));e.target.classList.add('active');state.strategy=e.target.dataset.strat;addEvent('info',`Strategy: ${state.strategy}`)})});
 
 // --- Boot ---
-addEvent('info','ArbEdge v3.0 — Live Market Data Mode');
-addEvent('info','Connecting to Polymarket & Kalshi APIs...');
+addEvent('info','ArbEdge v4.0 — BTC 15-Min Arb Scanner');
+addEvent('info','Fetching BTC 15-min up/down markets from Poly & Kalshi...');
 renderAll();
 
 // Fetch data then start ticker
