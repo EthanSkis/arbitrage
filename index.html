@@ -14,136 +14,125 @@
     --blue:#3b82f6;--blue2:#2563eb;--blue-bg:rgba(59,130,246,.1);
     --purple:#8b5cf6;--yellow:#f59e0b;--orange:#f97316;--cyan:#06b6d4;
     --poly:#6366f1;--kalshi:#ff6b35;
-    --radius:8px;--radius2:12px;
+    --radius:6px;
   }
-  body{font-family:'SF Mono','Cascadia Code','Fira Code',monospace;background:var(--bg);color:var(--text);overflow-x:hidden;font-size:13px}
-  ::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+  html,body{height:100%;overflow:hidden}
+  body{font-family:'SF Mono','Cascadia Code','Fira Code',monospace;background:var(--bg);color:var(--text);font-size:11px;display:flex;flex-direction:column}
+  ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
   /* Header */
-  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-  .logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700}
-  .logo svg{width:28px;height:28px}
+  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:6px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700}
+  .logo svg{width:22px;height:22px}
   .logo .edge{color:var(--green)}
-  .header-stats{display:flex;gap:24px;align-items:center}
+  .header-stats{display:flex;gap:16px;align-items:center}
   .header-stat{text-align:right}
-  .header-stat .label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
-  .header-stat .value{font-size:16px;font-weight:700}
+  .header-stat .label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+  .header-stat .value{font-size:13px;font-weight:700}
   .header-stat .value.positive{color:var(--green)}
   .header-stat .value.negative{color:var(--red)}
 
   /* Controls Bar */
-  .controls{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-  .control-group{display:flex;align-items:center;gap:8px}
-  .control-group label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
-  .btn{padding:6px 14px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:var(--radius);cursor:pointer;font-size:12px;font-family:inherit;transition:all .2s}
+  .controls{background:var(--surface);border-bottom:1px solid var(--border);padding:5px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+  .control-group{display:flex;align-items:center;gap:5px}
+  .control-group label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+  .btn{padding:3px 10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:var(--radius);cursor:pointer;font-size:10px;font-family:inherit;transition:all .15s}
   .btn:hover{border-color:var(--text3);background:var(--surface3)}
-  .btn.active,.btn.primary{background:var(--blue);border-color:var(--blue);color:#fff}
-  .btn.success{background:var(--green2);border-color:var(--green);color:#fff}
+  .btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
   .btn.danger{background:var(--red2);border-color:var(--red);color:#fff}
-  .btn.sm{padding:4px 10px;font-size:11px}
-  select,input[type=number],input[type=text]{padding:6px 10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:var(--radius);font-size:12px;font-family:inherit}
+  select,input[type=number]{padding:3px 6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:var(--radius);font-size:10px;font-family:inherit}
   select:focus,input:focus{outline:none;border-color:var(--blue)}
-  .toggle{position:relative;width:40px;height:22px;cursor:pointer}
+  .toggle{position:relative;width:32px;height:18px;cursor:pointer}
   .toggle input{opacity:0;width:0;height:0}
-  .toggle .slider{position:absolute;inset:0;background:var(--surface3);border-radius:11px;transition:.3s}
-  .toggle .slider:before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:var(--text3);border-radius:50%;transition:.3s}
+  .toggle .slider{position:absolute;inset:0;background:var(--surface3);border-radius:9px;transition:.3s}
+  .toggle .slider:before{content:'';position:absolute;height:12px;width:12px;left:3px;bottom:3px;background:var(--text3);border-radius:50%;transition:.3s}
   .toggle input:checked+.slider{background:var(--green2)}
-  .toggle input:checked+.slider:before{transform:translateX(18px);background:#fff}
+  .toggle input:checked+.slider:before{transform:translateX(14px);background:#fff}
   .spacer{flex:1}
-  .pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+  .pulse{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
-  /* Main Grid */
-  .main{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto auto;gap:1px;background:var(--border);padding:1px}
-  .panel{background:var(--surface);padding:16px;overflow:hidden}
-  .panel-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
-  .panel-title .badge{padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
-  .badge-poly{background:rgba(99,102,241,.2);color:var(--poly)}
-  .badge-kalshi{background:rgba(255,107,53,.2);color:var(--kalshi)}
+  /* Main Grid - fills remaining space */
+  .main{flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:1px;background:var(--border);overflow:hidden;min-height:0}
+  .panel{background:var(--surface);padding:8px;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+  .panel-title{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .panel-title .badge{padding:1px 6px;border-radius:8px;font-size:9px;font-weight:600}
   .badge-live{background:var(--green-bg);color:var(--green)}
-  .full-width{grid-column:1/-1}
+  .panel-body{flex:1;overflow-y:auto;min-height:0}
 
-  /* Arbitrage Opportunities Table */
+  /* Arb Table - spans 2 cols */
+  .col-span-2{grid-column:span 2}
+
   .arb-table{width:100%;border-collapse:collapse}
-  .arb-table th{text-align:left;padding:8px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface)}
-  .arb-table td{padding:7px 10px;border-bottom:1px solid rgba(42,53,80,.4);font-size:12px;white-space:nowrap}
+  .arb-table th{text-align:left;padding:3px 6px;font-size:9px;text-transform:uppercase;letter-spacing:.3px;color:var(--text3);border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1}
+  .arb-table td{padding:3px 6px;border-bottom:1px solid rgba(42,53,80,.3);font-size:10px;white-space:nowrap}
   .arb-table tr:hover{background:var(--surface2)}
-  .arb-table tr.executing{background:rgba(59,130,246,.08);border-left:2px solid var(--blue)}
-  .spread-bar{display:inline-flex;align-items:center;gap:6px}
-  .spread-fill{height:6px;border-radius:3px;background:var(--green);min-width:4px;transition:width .3s}
-  .market-name{max-width:260px;overflow:hidden;text-overflow:ellipsis}
+  .arb-table tr.executing{background:rgba(59,130,246,.08)}
+  .arb-table tr.selected{background:var(--surface2)}
+  .spread-bar{display:inline-flex;align-items:center;gap:4px}
+  .spread-fill{height:4px;border-radius:2px;background:var(--green);min-width:3px}
   .price-poly{color:var(--poly);font-weight:600}
   .price-kalshi{color:var(--kalshi);font-weight:600}
-  .arb-scroll{max-height:380px;overflow-y:auto}
 
-  /* Charts */
-  .chart-container{position:relative}
   canvas{width:100%!important;display:block}
 
-  /* P&L Panel */
-  .pnl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
-  .pnl-card{background:var(--surface2);border-radius:var(--radius);padding:12px;border:1px solid var(--border)}
-  .pnl-card .label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-  .pnl-card .val{font-size:20px;font-weight:700}
-  .pnl-card .sub{font-size:11px;color:var(--text3);margin-top:2px}
+  /* P&L Cards */
+  .pnl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px;flex-shrink:0}
+  .pnl-card{background:var(--surface2);border-radius:var(--radius);padding:6px 8px;border:1px solid var(--border)}
+  .pnl-card .label{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px}
+  .pnl-card .val{font-size:14px;font-weight:700}
+  .pnl-card .sub{font-size:9px;color:var(--text3)}
 
   /* Trade Log */
-  .trade-log{max-height:320px;overflow-y:auto}
-  .trade-entry{display:grid;grid-template-columns:80px 50px 1fr 70px 70px 70px 80px;gap:8px;padding:6px 8px;border-bottom:1px solid rgba(42,53,80,.3);font-size:11px;align-items:center}
+  .trade-entry{display:grid;grid-template-columns:60px 36px 1fr 52px 48px 48px 60px;gap:4px;padding:2px 4px;border-bottom:1px solid rgba(42,53,80,.2);font-size:10px;align-items:center}
   .trade-entry:hover{background:var(--surface2)}
   .trade-entry .time{color:var(--text3)}
   .trade-entry .side-buy{color:var(--green);font-weight:600}
   .trade-entry .side-sell{color:var(--red);font-weight:600}
   .trade-entry .profit.positive{color:var(--green)}
   .trade-entry .profit.negative{color:var(--red)}
-  .trade-header{font-weight:600;color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+  .trade-header{font-weight:600;color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border)}
 
   /* Order Book */
-  .ob-row{display:flex;align-items:center;padding:2px 6px;font-size:11px;position:relative}
-  .ob-row .price{width:60px;text-align:right;font-weight:600;z-index:1}
-  .ob-row .qty{width:60px;text-align:right;z-index:1;color:var(--text2)}
-  .ob-row .total{width:80px;text-align:right;z-index:1;color:var(--text3)}
+  .ob-row{display:flex;align-items:center;padding:1px 4px;font-size:10px;position:relative}
+  .ob-row .price{width:44px;text-align:right;font-weight:600;z-index:1}
+  .ob-row .qty{width:40px;text-align:right;z-index:1;color:var(--text2)}
+  .ob-row .total{width:50px;text-align:right;z-index:1;color:var(--text3);font-size:9px}
   .ob-row .fill{position:absolute;right:0;top:0;bottom:0;opacity:.12;border-radius:2px}
   .ob-row.bid .price{color:var(--green)}.ob-row.bid .fill{background:var(--green)}
   .ob-row.ask .price{color:var(--red)}.ob-row.ask .fill{background:var(--red)}
-  .ob-mid{text-align:center;padding:6px;font-weight:700;color:var(--yellow);font-size:13px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
-  .ob-header{display:flex;padding:4px 6px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
-  .ob-header span:nth-child(1){width:60px;text-align:right}
-  .ob-header span:nth-child(2){width:60px;text-align:right}
-  .ob-header span:nth-child(3){width:80px;text-align:right}
+  .ob-mid{text-align:center;padding:3px;font-weight:700;color:var(--yellow);font-size:11px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .ob-header{display:flex;padding:2px 4px;font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border)}
+  .ob-header span:nth-child(1){width:44px;text-align:right}
+  .ob-header span:nth-child(2){width:40px;text-align:right}
+  .ob-header span:nth-child(3){width:50px;text-align:right}
 
   /* Risk Panel */
-  .risk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-  .risk-item{background:var(--surface2);border-radius:var(--radius);padding:12px;border:1px solid var(--border)}
-  .risk-item .label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
-  .risk-item .val{font-size:18px;font-weight:700;margin-top:4px}
-  .risk-meter{height:4px;background:var(--surface3);border-radius:2px;margin-top:8px;overflow:hidden}
+  .risk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .risk-item{background:var(--surface2);border-radius:var(--radius);padding:6px 8px;border:1px solid var(--border)}
+  .risk-item .label{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px}
+  .risk-item .val{font-size:13px;font-weight:700;margin-top:2px}
+  .risk-meter{height:3px;background:var(--surface3);border-radius:2px;margin-top:4px;overflow:hidden}
   .risk-meter .fill{height:100%;border-radius:2px;transition:width .3s}
 
   /* Position Panel */
   .pos-table{width:100%;border-collapse:collapse}
-  .pos-table th{text-align:left;padding:6px 8px;font-size:10px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)}
-  .pos-table td{padding:6px 8px;font-size:12px;border-bottom:1px solid rgba(42,53,80,.3)}
+  .pos-table th{text-align:left;padding:3px 5px;font-size:9px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)}
+  .pos-table td{padding:3px 5px;font-size:10px;border-bottom:1px solid rgba(42,53,80,.3)}
 
-  /* Alert/Event Feed */
-  .event-feed{max-height:200px;overflow-y:auto}
-  .event-item{padding:6px 10px;border-left:3px solid var(--border);margin-bottom:4px;font-size:11px;background:var(--surface2);border-radius:0 var(--radius) var(--radius) 0}
+  /* Event Feed */
+  .event-item{padding:3px 6px;border-left:2px solid var(--border);margin-bottom:2px;font-size:10px;background:var(--surface2);border-radius:0 var(--radius) var(--radius) 0}
   .event-item.info{border-left-color:var(--blue)}
   .event-item.success{border-left-color:var(--green)}
   .event-item.warning{border-left-color:var(--yellow)}
   .event-item.error{border-left-color:var(--red)}
-  .event-item .etime{color:var(--text3);font-size:10px}
+  .event-item .etime{color:var(--text3);font-size:9px;margin-right:4px}
 
   /* Status Bar */
-  .status-bar{background:var(--surface);border-top:1px solid var(--border);padding:6px 24px;display:flex;align-items:center;gap:20px;font-size:11px;color:var(--text3);position:sticky;bottom:0}
-  .status-bar .indicator{display:flex;align-items:center;gap:6px}
-  .status-dot{width:6px;height:6px;border-radius:50%}
+  .status-bar{background:var(--surface);border-top:1px solid var(--border);padding:3px 16px;display:flex;align-items:center;gap:16px;font-size:10px;color:var(--text3);flex-shrink:0}
+  .status-bar .indicator{display:flex;align-items:center;gap:4px}
+  .status-dot{width:5px;height:5px;border-radius:50%}
   .status-dot.online{background:var(--green)}
-  .status-dot.offline{background:var(--red)}
-  .status-dot.warn{background:var(--yellow)}
-
-  /* Responsive */
-  @media(max-width:1200px){.main{grid-template-columns:1fr}.pnl-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -158,7 +147,7 @@
     <div class="header-stat"><div class="label">Total P&L</div><div class="value positive" id="hdr-pnl">+$0.00</div></div>
     <div class="header-stat"><div class="label">Win Rate</div><div class="value" id="hdr-winrate">0%</div></div>
     <div class="header-stat"><div class="label">Active Arbs</div><div class="value" id="hdr-active">0</div></div>
-    <div class="header-stat"><div class="label">Trades Today</div><div class="value" id="hdr-trades">0</div></div>
+    <div class="header-stat"><div class="label">Trades</div><div class="value" id="hdr-trades">0</div></div>
     <div class="header-stat"><div class="label">Balance</div><div class="value" id="hdr-balance">$10,000.00</div></div>
   </div>
 </div>
@@ -173,22 +162,22 @@
   <div class="control-group">
     <label>Speed</label>
     <select id="sim-speed">
-      <option value="2000">Slow (2s)</option>
-      <option value="1000" selected>Normal (1s)</option>
-      <option value="500">Fast (0.5s)</option>
-      <option value="200">Turbo (0.2s)</option>
+      <option value="2000">Slow</option>
+      <option value="1000" selected>Normal</option>
+      <option value="500">Fast</option>
+      <option value="200">Turbo</option>
     </select>
   </div>
   <div class="control-group">
     <label>Min Spread</label>
-    <input type="number" id="min-spread" value="2" min="0.5" max="20" step="0.5" style="width:70px"> <span style="color:var(--text3)">%</span>
+    <input type="number" id="min-spread" value="2" min="0.5" max="20" step="0.5" style="width:55px"><span style="color:var(--text3)">%</span>
   </div>
   <div class="control-group">
-    <label>Max Position</label>
-    <input type="number" id="max-pos" value="500" min="50" max="5000" step="50" style="width:80px"> <span style="color:var(--text3)">$</span>
+    <label>Max Pos</label>
+    <input type="number" id="max-pos" value="500" min="50" max="5000" step="50" style="width:60px"><span style="color:var(--text3)">$</span>
   </div>
   <div class="control-group">
-    <label>Risk Mode</label>
+    <label>Risk</label>
     <select id="risk-mode">
       <option value="conservative">Conservative</option>
       <option value="moderate" selected>Moderate</option>
@@ -196,39 +185,35 @@
     </select>
   </div>
   <div class="spacer"></div>
-  <div class="control-group">
-    <label>Strategy</label>
-    <button class="btn sm active" data-strat="cross">Cross-Market</button>
-    <button class="btn sm" data-strat="hedged">Hedged</button>
-    <button class="btn sm" data-strat="scalp">Scalp</button>
-  </div>
-  <button class="btn danger sm" id="btn-reset">Reset Sim</button>
+  <button class="btn active" data-strat="cross">Cross-Mkt</button>
+  <button class="btn" data-strat="hedged">Hedged</button>
+  <button class="btn" data-strat="scalp">Scalp</button>
+  <button class="btn danger" id="btn-reset">Reset</button>
 </div>
 
-<!-- MAIN DASHBOARD -->
+<!-- MAIN 3x3 GRID -->
 <div class="main">
 
-  <!-- ARBITRAGE OPPORTUNITIES -->
-  <div class="panel full-width">
+  <!-- ROW 1: Arb Table (2 cols) + Order Book -->
+  <div class="panel col-span-2">
     <div class="panel-title">
-      Arbitrage Opportunities Scanner
-      <div><span class="badge badge-live"><span class="pulse" style="margin-right:4px"></span> LIVE SCANNING</span></div>
+      Arbitrage Scanner
+      <span class="badge badge-live"><span class="pulse" style="margin-right:3px"></span> LIVE</span>
     </div>
-    <div class="arb-scroll">
+    <div class="panel-body">
       <table class="arb-table">
         <thead>
           <tr>
-            <th style="width:30px">#</th>
+            <th>#</th>
             <th>Market</th>
-            <th>Category</th>
-            <th><span style="color:var(--poly)">Poly</span> YES</th>
-            <th><span style="color:var(--kalshi)">Kalshi</span> YES</th>
+            <th>Cat</th>
+            <th><span style="color:var(--poly)">Poly</span></th>
+            <th><span style="color:var(--kalshi)">Kalshi</span></th>
             <th>Spread</th>
             <th>Direction</th>
-            <th>Est. Profit</th>
-            <th>Volume 24h</th>
-            <th>Liquidity</th>
-            <th>Action</th>
+            <th>Est $</th>
+            <th>Vol</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody id="arb-body"></tbody>
@@ -236,33 +221,18 @@
     </div>
   </div>
 
-  <!-- P&L + EQUITY CURVE -->
   <div class="panel">
-    <div class="panel-title">Performance & P&L</div>
-    <div class="pnl-grid">
-      <div class="pnl-card"><div class="label">Realized P&L</div><div class="val positive" id="pnl-realized">$0.00</div><div class="sub" id="pnl-realized-pct">+0.00%</div></div>
-      <div class="pnl-card"><div class="label">Unrealized P&L</div><div class="val" id="pnl-unrealized">$0.00</div><div class="sub" id="pnl-positions">0 positions</div></div>
-      <div class="pnl-card"><div class="label">Total Trades</div><div class="val" id="pnl-total-trades">0</div><div class="sub" id="pnl-win-loss">W: 0 / L: 0</div></div>
-      <div class="pnl-card"><div class="label">Avg Profit/Trade</div><div class="val" id="pnl-avg">$0.00</div><div class="sub" id="pnl-sharpe">Sharpe: --</div></div>
-    </div>
-    <canvas id="equity-chart" height="180"></canvas>
-  </div>
-
-  <!-- ORDER BOOK -->
-  <div class="panel">
-    <div class="panel-title">
-      Live Order Book <span style="color:var(--text3);font-size:10px;text-transform:none" id="ob-market">-- select market --</span>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div class="panel-title">Order Book <span style="color:var(--text3);font-size:9px;text-transform:none" id="ob-market">Select market</span></div>
+    <div class="panel-body" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <div>
-        <div style="text-align:center;font-size:10px;color:var(--poly);margin-bottom:6px;font-weight:600">POLYMARKET</div>
+        <div style="text-align:center;font-size:9px;color:var(--poly);font-weight:600;margin-bottom:3px">POLYMARKET</div>
         <div class="ob-header"><span>Price</span><span>Qty</span><span>Total</span></div>
         <div id="ob-poly-asks" style="display:flex;flex-direction:column-reverse"></div>
         <div class="ob-mid" id="ob-poly-mid">--</div>
         <div id="ob-poly-bids"></div>
       </div>
       <div>
-        <div style="text-align:center;font-size:10px;color:var(--kalshi);margin-bottom:6px;font-weight:600">KALSHI</div>
+        <div style="text-align:center;font-size:9px;color:var(--kalshi);font-weight:600;margin-bottom:3px">KALSHI</div>
         <div class="ob-header"><span>Price</span><span>Qty</span><span>Total</span></div>
         <div id="ob-kalshi-asks" style="display:flex;flex-direction:column-reverse"></div>
         <div class="ob-mid" id="ob-kalshi-mid">--</div>
@@ -271,93 +241,72 @@
     </div>
   </div>
 
-  <!-- SPREAD CHART -->
+  <!-- ROW 2: P&L + Equity | Positions + Risk | Spread Chart -->
   <div class="panel">
-    <div class="panel-title">Spread History (Top Opportunity)</div>
-    <canvas id="spread-chart" height="220"></canvas>
-  </div>
-
-  <!-- RISK MANAGEMENT -->
-  <div class="panel">
-    <div class="panel-title">Risk Management</div>
-    <div class="risk-grid">
-      <div class="risk-item">
-        <div class="label">Exposure</div>
-        <div class="val" id="risk-exposure">$0</div>
-        <div class="risk-meter"><div class="fill" id="risk-exp-fill" style="width:0%;background:var(--green)"></div></div>
-      </div>
-      <div class="risk-item">
-        <div class="label">Max Drawdown</div>
-        <div class="val" id="risk-dd">0%</div>
-        <div class="risk-meter"><div class="fill" id="risk-dd-fill" style="width:0%;background:var(--green)"></div></div>
-      </div>
-      <div class="risk-item">
-        <div class="label">Var (95%)</div>
-        <div class="val" id="risk-var">$0</div>
-        <div class="risk-meter"><div class="fill" id="risk-var-fill" style="width:0%;background:var(--green)"></div></div>
-      </div>
-      <div class="risk-item">
-        <div class="label">Correlation Risk</div>
-        <div class="val" id="risk-corr">Low</div>
-        <div class="risk-meter"><div class="fill" id="risk-corr-fill" style="width:15%;background:var(--green)"></div></div>
-      </div>
-      <div class="risk-item">
-        <div class="label">Margin Used</div>
-        <div class="val" id="risk-margin">0%</div>
-        <div class="risk-meter"><div class="fill" id="risk-margin-fill" style="width:0%;background:var(--green)"></div></div>
-      </div>
-      <div class="risk-item">
-        <div class="label">Hedge Ratio</div>
-        <div class="val" id="risk-hedge">1.00</div>
-        <div class="risk-meter"><div class="fill" id="risk-hedge-fill" style="width:100%;background:var(--green)"></div></div>
-      </div>
+    <div class="panel-title">Performance</div>
+    <div class="pnl-grid" style="grid-template-columns:1fr 1fr">
+      <div class="pnl-card"><div class="label">Realized</div><div class="val positive" id="pnl-realized">$0.00</div><div class="sub" id="pnl-realized-pct">+0.00%</div></div>
+      <div class="pnl-card"><div class="label">Unrealized</div><div class="val" id="pnl-unrealized">$0.00</div><div class="sub" id="pnl-positions">0 pos</div></div>
+      <div class="pnl-card"><div class="label">Trades</div><div class="val" id="pnl-total-trades">0</div><div class="sub" id="pnl-win-loss">W:0 / L:0</div></div>
+      <div class="pnl-card"><div class="label">Avg P/T</div><div class="val" id="pnl-avg">$0.00</div><div class="sub" id="pnl-sharpe">Sharpe: --</div></div>
     </div>
+    <canvas id="equity-chart" style="flex:1;min-height:0"></canvas>
   </div>
 
-  <!-- POSITIONS -->
   <div class="panel">
     <div class="panel-title">Open Positions <span class="badge badge-live" id="pos-count">0</span></div>
-    <div style="max-height:220px;overflow-y:auto">
+    <div class="panel-body">
       <table class="pos-table">
-        <thead><tr><th>Market</th><th>Side</th><th>Plat</th><th>Entry</th><th>Current</th><th>Size</th><th>P&L</th><th></th></tr></thead>
+        <thead><tr><th>Market</th><th>Plat</th><th>Entry</th><th>Now</th><th>$</th><th>P&L</th></tr></thead>
         <tbody id="pos-body"></tbody>
       </table>
     </div>
   </div>
 
-  <!-- TRADE LOG -->
-  <div class="panel full-width">
-    <div class="panel-title">Trade Execution Log <span style="color:var(--text3);font-size:10px;text-transform:none" id="log-count">0 trades</span></div>
-    <div class="trade-log">
+  <div class="panel">
+    <div class="panel-title">Spread History</div>
+    <canvas id="spread-chart" style="flex:1;min-height:0"></canvas>
+  </div>
+
+  <!-- ROW 3: Trade Log | Risk | Events -->
+  <div class="panel">
+    <div class="panel-title">Trade Log <span style="color:var(--text3);font-size:9px;text-transform:none" id="log-count">0</span></div>
+    <div class="panel-body">
       <div class="trade-entry trade-header">
-        <span>Time</span><span>Side</span><span>Market</span><span>Platform</span><span>Price</span><span>Size</span><span>P&L</span>
+        <span>Time</span><span>Side</span><span>Market</span><span>Plat</span><span>Price</span><span>Size</span><span>P&L</span>
       </div>
       <div id="trade-log-body"></div>
     </div>
   </div>
 
-  <!-- MARKET VOLUME CHART -->
   <div class="panel">
-    <div class="panel-title">24h Volume by Category</div>
-    <canvas id="volume-chart" height="200"></canvas>
+    <div class="panel-title">Risk Management</div>
+    <div class="panel-body">
+      <div class="risk-grid">
+        <div class="risk-item"><div class="label">Exposure</div><div class="val" id="risk-exposure">$0</div><div class="risk-meter"><div class="fill" id="risk-exp-fill" style="width:0%;background:var(--green)"></div></div></div>
+        <div class="risk-item"><div class="label">Max DD</div><div class="val" id="risk-dd">0%</div><div class="risk-meter"><div class="fill" id="risk-dd-fill" style="width:0%;background:var(--green)"></div></div></div>
+        <div class="risk-item"><div class="label">VaR 95%</div><div class="val" id="risk-var">$0</div><div class="risk-meter"><div class="fill" id="risk-var-fill" style="width:0%;background:var(--green)"></div></div></div>
+        <div class="risk-item"><div class="label">Corr Risk</div><div class="val" id="risk-corr">Low</div><div class="risk-meter"><div class="fill" id="risk-corr-fill" style="width:15%;background:var(--green)"></div></div></div>
+        <div class="risk-item"><div class="label">Margin</div><div class="val" id="risk-margin">0%</div><div class="risk-meter"><div class="fill" id="risk-margin-fill" style="width:0%;background:var(--green)"></div></div></div>
+        <div class="risk-item"><div class="label">Hedge</div><div class="val" id="risk-hedge">1.00</div><div class="risk-meter"><div class="fill" id="risk-hedge-fill" style="width:100%;background:var(--green)"></div></div></div>
+      </div>
+    </div>
   </div>
 
-  <!-- EVENT FEED -->
   <div class="panel">
-    <div class="panel-title">Event & Alert Feed</div>
-    <div class="event-feed" id="event-feed"></div>
+    <div class="panel-title">Event Feed</div>
+    <div class="panel-body" id="event-feed"></div>
   </div>
 
 </div>
 
 <!-- STATUS BAR -->
 <div class="status-bar">
-  <div class="indicator"><span class="status-dot online" id="poly-status"></span> Polymarket: Connected</div>
-  <div class="indicator"><span class="status-dot online" id="kalshi-status"></span> Kalshi: Connected</div>
-  <div class="indicator">Latency: <span id="latency">12ms</span></div>
-  <div class="indicator">Data Age: <span id="data-age">0s</span></div>
+  <div class="indicator"><span class="status-dot online"></span> Polymarket</div>
+  <div class="indicator"><span class="status-dot online"></span> Kalshi</div>
+  <div class="indicator">Ping: <span id="latency">12ms</span></div>
   <div class="spacer"></div>
-  <div class="indicator">Sim Clock: <span id="sim-clock">00:00:00</span></div>
+  <div class="indicator">Clock: <span id="sim-clock">00:00:00</span></div>
   <div class="indicator">Tick: <span id="tick-count">0</span></div>
 </div>
 
@@ -366,759 +315,428 @@
 // ArbEdge - Complete Arbitrage Simulation Engine
 // ============================================================================
 
-// --- Market Data Generator ---
 const MARKETS = [
-  {id:'m1',name:'US Presidential Election 2028 Winner',category:'Politics',basePolyYes:52,baseKalshiYes:49,vol24h:2800000,liq:'High'},
-  {id:'m2',name:'Fed Rate Cut Before July 2026',category:'Economics',basePolyYes:67,baseKalshiYes:63,vol24h:1900000,liq:'High'},
-  {id:'m3',name:'Bitcoin Above $150K by Dec 2026',category:'Crypto',basePolyYes:34,baseKalshiYes:31,vol24h:3200000,liq:'High'},
-  {id:'m4',name:'Tesla Stock Above $400 by Q2 2026',category:'Stocks',basePolyYes:41,baseKalshiYes:44,vol24h:980000,liq:'Medium'},
-  {id:'m5',name:'AI Passes Bar Exam Top 1%',category:'Tech',basePolyYes:78,baseKalshiYes:74,vol24h:450000,liq:'Medium'},
-  {id:'m6',name:'US GDP Growth >3% Q1 2026',category:'Economics',basePolyYes:29,baseKalshiYes:26,vol24h:720000,liq:'Medium'},
-  {id:'m7',name:'SpaceX Starship Orbit by June 2026',category:'Science',basePolyYes:61,baseKalshiYes:58,vol24h:340000,liq:'Low'},
-  {id:'m8',name:'Ethereum ETF AUM >$50B by 2026',category:'Crypto',basePolyYes:45,baseKalshiYes:42,vol24h:1500000,liq:'High'},
-  {id:'m9',name:'TikTok Ban Upheld in US',category:'Politics',basePolyYes:38,baseKalshiYes:35,vol24h:890000,liq:'Medium'},
-  {id:'m10',name:'NFL Super Bowl LXI Champion: Chiefs',category:'Sports',basePolyYes:18,baseKalshiYes:21,vol24h:2100000,liq:'High'},
-  {id:'m11',name:'S&P 500 Above 6500 EOY 2026',category:'Stocks',basePolyYes:55,baseKalshiYes:52,vol24h:1400000,liq:'High'},
-  {id:'m12',name:'WHO Declares New Pandemic by 2027',category:'Health',basePolyYes:12,baseKalshiYes:15,vol24h:280000,liq:'Low'},
-  {id:'m13',name:'Apple Releases AR Glasses 2026',category:'Tech',basePolyYes:33,baseKalshiYes:29,vol24h:670000,liq:'Medium'},
-  {id:'m14',name:'Oil Price Above $100/bbl Q2 2026',category:'Commodities',basePolyYes:22,baseKalshiYes:19,vol24h:810000,liq:'Medium'},
-  {id:'m15',name:'Ukraine-Russia Ceasefire by 2026',category:'Politics',basePolyYes:25,baseKalshiYes:28,vol24h:560000,liq:'Low'},
-  {id:'m16',name:'Nvidia Revenue >$50B Q1 2026',category:'Stocks',basePolyYes:72,baseKalshiYes:69,vol24h:1100000,liq:'High'},
-  {id:'m17',name:'Global Temperature Record Broken 2026',category:'Climate',basePolyYes:65,baseKalshiYes:62,vol24h:190000,liq:'Low'},
-  {id:'m18',name:'US Unemployment Rate >5% 2026',category:'Economics',basePolyYes:15,baseKalshiYes:18,vol24h:430000,liq:'Medium'},
+  {id:'m1',name:'US Presidential Election 2028',category:'Politics',basePolyYes:52,baseKalshiYes:49,vol24h:2800000,liq:'High'},
+  {id:'m2',name:'Fed Rate Cut Before Jul 2026',category:'Econ',basePolyYes:67,baseKalshiYes:63,vol24h:1900000,liq:'High'},
+  {id:'m3',name:'BTC Above $150K Dec 2026',category:'Crypto',basePolyYes:34,baseKalshiYes:31,vol24h:3200000,liq:'High'},
+  {id:'m4',name:'TSLA Above $400 Q2 2026',category:'Stocks',basePolyYes:41,baseKalshiYes:44,vol24h:980000,liq:'Med'},
+  {id:'m5',name:'AI Passes Bar Exam Top 1%',category:'Tech',basePolyYes:78,baseKalshiYes:74,vol24h:450000,liq:'Med'},
+  {id:'m6',name:'US GDP Growth >3% Q1 2026',category:'Econ',basePolyYes:29,baseKalshiYes:26,vol24h:720000,liq:'Med'},
+  {id:'m7',name:'SpaceX Starship Orbit Jun 26',category:'Sci',basePolyYes:61,baseKalshiYes:58,vol24h:340000,liq:'Low'},
+  {id:'m8',name:'ETH ETF AUM >$50B 2026',category:'Crypto',basePolyYes:45,baseKalshiYes:42,vol24h:1500000,liq:'High'},
+  {id:'m9',name:'TikTok Ban Upheld US',category:'Politics',basePolyYes:38,baseKalshiYes:35,vol24h:890000,liq:'Med'},
+  {id:'m10',name:'Super Bowl LXI: Chiefs',category:'Sports',basePolyYes:18,baseKalshiYes:21,vol24h:2100000,liq:'High'},
+  {id:'m11',name:'S&P 500 Above 6500 EOY 26',category:'Stocks',basePolyYes:55,baseKalshiYes:52,vol24h:1400000,liq:'High'},
+  {id:'m12',name:'WHO New Pandemic by 2027',category:'Health',basePolyYes:12,baseKalshiYes:15,vol24h:280000,liq:'Low'},
+  {id:'m13',name:'Apple AR Glasses 2026',category:'Tech',basePolyYes:33,baseKalshiYes:29,vol24h:670000,liq:'Med'},
+  {id:'m14',name:'Oil >$100/bbl Q2 2026',category:'Commod',basePolyYes:22,baseKalshiYes:19,vol24h:810000,liq:'Med'},
+  {id:'m15',name:'Ukraine-Russia Ceasefire 26',category:'Politics',basePolyYes:25,baseKalshiYes:28,vol24h:560000,liq:'Low'},
+  {id:'m16',name:'NVDA Revenue >$50B Q1 26',category:'Stocks',basePolyYes:72,baseKalshiYes:69,vol24h:1100000,liq:'High'},
+  {id:'m17',name:'Global Temp Record 2026',category:'Climate',basePolyYes:65,baseKalshiYes:62,vol24h:190000,liq:'Low'},
+  {id:'m18',name:'US Unemployment >5% 2026',category:'Econ',basePolyYes:15,baseKalshiYes:18,vol24h:430000,liq:'Med'},
 ];
 
 // --- State ---
 let state = {
-  balance: 10000,
-  startBalance: 10000,
-  realizedPnl: 0,
-  unrealizedPnl: 0,
-  positions: [],
-  trades: [],
-  equityCurve: [10000],
-  spreadHistory: [],
-  wins: 0,
-  losses: 0,
-  tick: 0,
-  simTime: 0,
-  botActive: true,
-  speed: 1000,
-  minSpread: 2,
-  maxPos: 500,
-  riskMode: 'moderate',
-  strategy: 'cross',
-  events: [],
-  maxEquity: 10000,
-  maxDrawdown: 0,
-  selectedMarket: 0,
+  balance:10000, startBalance:10000, realizedPnl:0, unrealizedPnl:0,
+  positions:[], trades:[], equityCurve:[10000], spreadHistory:[],
+  wins:0, losses:0, tick:0, simTime:0, botActive:true,
+  speed:1000, minSpread:2, maxPos:500, riskMode:'moderate', strategy:'cross',
+  events:[], maxEquity:10000, maxDrawdown:0, selectedMarket:0,
 };
 
-// Live market prices (simulated)
-let liveMarkets = MARKETS.map(m => ({
-  ...m,
-  polyYes: m.basePolyYes,
-  kalshiYes: m.baseKalshiYes,
-  polyNo: 100 - m.basePolyYes,
-  kalshiNo: 100 - m.baseKalshiYes,
-  spread: 0,
-  direction: '',
-  estProfit: 0,
-}));
+let liveMarkets = [];
 
-// --- Utility Functions ---
-function fmt(n, d=2) { return n.toFixed(d); }
-function fmtUsd(n) { return (n>=0?'+':'')+n.toLocaleString('en-US',{style:'currency',currency:'USD'}); }
-function fmtUsdAbs(n) { return n.toLocaleString('en-US',{style:'currency',currency:'USD'}); }
-function rand(min,max) { return min + Math.random()*(max-min); }
-function randInt(min,max) { return Math.floor(rand(min,max+1)); }
-function clamp(v,min,max) { return Math.max(min,Math.min(max,v)); }
-function timeStr(ms) { const s=Math.floor(ms/1000),m=Math.floor(s/60),h=Math.floor(m/60); return `${String(h).padStart(2,'0')}:${String(m%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
-function now() { const d=new Date(); return d.toLocaleTimeString('en-US',{hour12:false}); }
-
-// --- Price Simulation ---
-function tickPrices() {
+function initMarkets() {
+  liveMarkets = MARKETS.map(m => ({
+    ...m,
+    polyYes: m.basePolyYes + (Math.random()-0.5)*6,
+    kalshiYes: m.baseKalshiYes + (Math.random()-0.5)*6,
+    polyNo: 0, kalshiNo: 0, spread: 0, direction: '', estProfit: 0,
+  }));
+  // Compute initial spreads
   liveMarkets.forEach(m => {
-    // Random walk with mean reversion
-    const drift = (m.basePolyYes - m.polyYes) * 0.02;
-    const noise = (Math.random()-0.5) * 3.5;
-    m.polyYes = clamp(m.polyYes + drift + noise, 2, 98);
-
-    const drift2 = (m.baseKalshiYes - m.kalshiYes) * 0.02;
-    const noise2 = (Math.random()-0.5) * 3.5;
-    m.kalshiYes = clamp(m.kalshiYes + drift2 + noise2, 2, 98);
-
-    // Occasionally create bigger spreads (arb opportunities)
-    if (Math.random() < 0.03) {
-      const spike = rand(2, 8) * (Math.random()>0.5?1:-1);
-      if (Math.random()>0.5) m.polyYes = clamp(m.polyYes+spike,2,98);
-      else m.kalshiYes = clamp(m.kalshiYes+spike,2,98);
-    }
-
+    m.polyYes = clamp(m.polyYes, 3, 97);
+    m.kalshiYes = clamp(m.kalshiYes, 3, 97);
     m.polyNo = 100 - m.polyYes;
     m.kalshiNo = 100 - m.kalshiYes;
-
-    // Calculate spread: buy YES cheap on one, buy NO (sell YES) on the other
-    const spreadA = m.kalshiYes - m.polyYes; // Buy Poly YES, Sell Kalshi YES
-    const spreadB = m.polyYes - m.kalshiYes; // Buy Kalshi YES, Sell Poly YES
-
-    if (spreadA > spreadB) {
-      m.spread = spreadA;
-      m.direction = 'Buy Poly / Sell Kalshi';
-    } else {
-      m.spread = spreadB;
-      m.direction = 'Buy Kalshi / Sell Poly';
-    }
-    m.estProfit = m.spread * state.maxPos / 100;
-
-    // Also check: buy YES on one + buy YES on other < 100 => guaranteed profit
-    const totalCost = Math.min(m.polyYes, m.kalshiYes) + Math.min(m.polyNo, m.kalshiNo);
-    if (totalCost < 98) {
-      const altSpread = 100 - totalCost;
-      if (altSpread > m.spread) {
-        m.spread = altSpread;
-        m.direction = 'Multi-leg Hedge';
-        m.estProfit = altSpread * state.maxPos / 100;
-      }
-    }
+    computeSpread(m);
   });
-
-  // Sort by spread descending
   liveMarkets.sort((a,b) => b.spread - a.spread);
 }
 
-// --- Arbitrage Execution Engine ---
+function fmt(n,d=2){return n.toFixed(d)}
+function fmtUsd(n){return(n>=0?'+':'')+n.toLocaleString('en-US',{style:'currency',currency:'USD'})}
+function fmtUsdAbs(n){return n.toLocaleString('en-US',{style:'currency',currency:'USD'})}
+function rand(a,b){return a+Math.random()*(b-a)}
+function randInt(a,b){return Math.floor(rand(a,b+1))}
+function clamp(v,mn,mx){return Math.max(mn,Math.min(mx,v))}
+function timeStr(ms){const s=Math.floor(ms/1000),m=Math.floor(s/60),h=Math.floor(m/60);return`${String(h).padStart(2,'0')}:${String(m%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}
+
+function computeSpread(m) {
+  const sA = m.kalshiYes - m.polyYes;
+  const sB = m.polyYes - m.kalshiYes;
+  if (sA > sB) { m.spread = sA; m.direction = 'Buy Poly → Sell Kalshi'; }
+  else { m.spread = sB; m.direction = 'Buy Kalshi → Sell Poly'; }
+  const totalCost = Math.min(m.polyYes,m.kalshiYes) + Math.min(m.polyNo,m.kalshiNo);
+  if (totalCost < 98) {
+    const alt = 100 - totalCost;
+    if (alt > m.spread) { m.spread = alt; m.direction = 'Multi-leg Hedge'; }
+  }
+  m.estProfit = m.spread * state.maxPos / 100;
+}
+
+function tickPrices() {
+  liveMarkets.forEach(m => {
+    const drift = (m.basePolyYes - m.polyYes)*0.02;
+    m.polyYes = clamp(m.polyYes + drift + (Math.random()-0.5)*3.5, 2, 98);
+    const drift2 = (m.baseKalshiYes - m.kalshiYes)*0.02;
+    m.kalshiYes = clamp(m.kalshiYes + drift2 + (Math.random()-0.5)*3.5, 2, 98);
+    if (Math.random()<0.03) {
+      const spike = rand(2,8)*(Math.random()>0.5?1:-1);
+      if(Math.random()>0.5) m.polyYes=clamp(m.polyYes+spike,2,98);
+      else m.kalshiYes=clamp(m.kalshiYes+spike,2,98);
+    }
+    m.polyNo = 100 - m.polyYes;
+    m.kalshiNo = 100 - m.kalshiYes;
+    computeSpread(m);
+  });
+  liveMarkets.sort((a,b) => b.spread - a.spread);
+}
+
 function tryExecuteArbs() {
   if (!state.botActive) return;
-
-  const minSpread = state.minSpread;
-  const maxPos = state.maxPos;
-  const riskMult = state.riskMode === 'conservative' ? 0.5 : state.riskMode === 'aggressive' ? 1.5 : 1;
-  const posSize = maxPos * riskMult;
+  const riskMult = state.riskMode==='conservative'?0.5:state.riskMode==='aggressive'?1.5:1;
+  const posSize = state.maxPos * riskMult;
 
   liveMarkets.forEach(m => {
-    if (m.spread < minSpread) return;
-    if (state.positions.length >= 8) return;
-    if (state.positions.find(p => p.marketId === m.id)) return;
-    if (state.balance < posSize) return;
+    if (m.spread < state.minSpread || state.positions.length >= 8) return;
+    if (state.positions.find(p => p.marketId===m.id) || state.balance < posSize) return;
 
-    // Execute the arb
-    const entrySpread = m.spread;
-    let buyPlatform, sellPlatform, buyPrice, sellPrice;
+    let buyPlat, sellPlat, buyPrice;
+    if (m.direction.includes('Buy Poly')) { buyPlat='Polymarket'; sellPlat='Kalshi'; buyPrice=m.polyYes; }
+    else if (m.direction.includes('Buy Kalshi')) { buyPlat='Kalshi'; sellPlat='Polymarket'; buyPrice=m.kalshiYes; }
+    else { buyPlat=m.polyYes<m.kalshiYes?'Polymarket':'Kalshi'; sellPlat=m.polyNo<m.kalshiNo?'Polymarket':'Kalshi'; buyPrice=Math.min(m.polyYes,m.kalshiYes); }
 
-    if (m.direction.includes('Buy Poly')) {
-      buyPlatform = 'Polymarket';
-      sellPlatform = 'Kalshi';
-      buyPrice = m.polyYes;
-      sellPrice = m.kalshiYes;
-    } else if (m.direction.includes('Buy Kalshi')) {
-      buyPlatform = 'Kalshi';
-      sellPlatform = 'Polymarket';
-      buyPrice = m.kalshiYes;
-      sellPrice = m.polyYes;
-    } else {
-      // Multi-leg: buy cheapest YES + cheapest NO
-      buyPlatform = m.polyYes < m.kalshiYes ? 'Polymarket' : 'Kalshi';
-      sellPlatform = m.polyNo < m.kalshiNo ? 'Polymarket' : 'Kalshi';
-      buyPrice = Math.min(m.polyYes, m.kalshiYes);
-      sellPrice = 100 - Math.min(m.polyNo, m.kalshiNo);
-    }
-
-    const contracts = Math.floor(posSize / (buyPrice/100 * 1));
-    const cost = contracts * buyPrice / 100;
-
+    const contracts = Math.floor(posSize/(buyPrice/100));
+    const cost = contracts*buyPrice/100;
     state.balance -= cost;
 
-    const pos = {
-      id: Date.now() + Math.random(),
-      marketId: m.id,
-      marketName: m.name,
-      buyPlatform,
-      sellPlatform,
-      buyPrice,
-      sellPrice,
-      entrySpread,
-      contracts,
-      cost,
-      entryTime: state.simTime,
-      side: 'LONG',
-    };
-    state.positions.push(pos);
-
-    // Log buy trade
-    addTrade('BUY', m.name, buyPlatform, buyPrice, cost, 0);
-    addEvent('success', `Opened arb: ${m.name} | Spread: ${fmt(entrySpread)}% | ${m.direction}`);
+    state.positions.push({
+      id:Date.now()+Math.random(), marketId:m.id, marketName:m.name,
+      buyPlatform:buyPlat, sellPlatform:sellPlat, buyPrice, sellPrice:0,
+      entrySpread:m.spread, contracts, cost, entryTime:state.simTime, side:'LONG',
+    });
+    addTrade('BUY',m.name,buyPlat,buyPrice,cost,0);
+    addEvent('success',`Opened: ${m.name} | ${fmt(m.spread)}% spread`);
   });
 }
 
-// --- Position Management ---
 function managePositions() {
   const toClose = [];
-
-  state.positions.forEach((pos, i) => {
-    const m = liveMarkets.find(mm => mm.id === pos.marketId);
-    if (!m) return;
-
+  state.positions.forEach((pos,i) => {
+    const m = liveMarkets.find(mm=>mm.id===pos.marketId);
+    if(!m) return;
     const holdTime = state.simTime - pos.entryTime;
-    const currentSpread = m.spread;
-
-    // Close conditions:
-    // 1. Spread collapsed (take profit)
-    // 2. Spread reversed against us significantly (stop loss)
-    // 3. Held too long (time-based exit)
-    const spreadCollapsed = currentSpread < 0.5;
-    const spreadReversed = currentSpread > pos.entrySpread * 2.5;
-    const tooLong = holdTime > 60000; // 60 ticks
-
-    if (spreadCollapsed || spreadReversed || tooLong || Math.random() < 0.04) {
-      // Calculate P&L
-      let exitPrice;
-      if (pos.buyPlatform === 'Polymarket') {
-        exitPrice = m.polyYes;
-      } else {
-        exitPrice = m.kalshiYes;
-      }
-
-      const exitValue = pos.contracts * exitPrice / 100;
-      const pnl = exitValue - pos.cost + (pos.entrySpread * pos.contracts / 200);
-
-      // Add some realistic variance
-      const finalPnl = pnl * rand(0.4, 1.2);
-
-      state.balance += pos.cost + finalPnl;
-      state.realizedPnl += finalPnl;
-
-      if (finalPnl >= 0) state.wins++; else state.losses++;
-
-      addTrade('SELL', pos.marketName, pos.sellPlatform, exitPrice, exitValue, finalPnl);
-
-      if (finalPnl >= 0) {
-        addEvent('success', `Closed ${pos.marketName} for ${fmtUsd(finalPnl)} profit`);
-      } else {
-        addEvent('warning', `Closed ${pos.marketName} for ${fmtUsd(finalPnl)} loss`);
-      }
-
+    const spreadCollapsed = m.spread < 0.5;
+    const spreadReversed = m.spread > pos.entrySpread * 2.5;
+    const tooLong = holdTime > 60000;
+    if (spreadCollapsed || spreadReversed || tooLong || Math.random()<0.04) {
+      const exitPrice = pos.buyPlatform==='Polymarket'?m.polyYes:m.kalshiYes;
+      const exitValue = pos.contracts*exitPrice/100;
+      const pnl = (exitValue - pos.cost + pos.entrySpread*pos.contracts/200)*rand(0.4,1.2);
+      state.balance += pos.cost + pnl;
+      state.realizedPnl += pnl;
+      if(pnl>=0) state.wins++; else state.losses++;
+      addTrade('SELL',pos.marketName,pos.sellPlatform,exitPrice,exitValue,pnl);
+      addEvent(pnl>=0?'success':'warning',`Closed: ${pos.marketName} ${fmtUsd(pnl)}`);
       toClose.push(i);
     }
   });
-
-  // Remove closed positions (reverse order)
-  toClose.sort((a,b)=>b-a).forEach(i => state.positions.splice(i,1));
+  toClose.sort((a,b)=>b-a).forEach(i=>state.positions.splice(i,1));
 }
 
-function addTrade(side, market, platform, price, size, pnl) {
-  state.trades.unshift({
-    time: timeStr(state.simTime),
-    side,
-    market,
-    platform,
-    price: fmt(price),
-    size: fmtUsdAbs(Math.abs(size)),
-    pnl: fmt(pnl),
-    pnlNum: pnl,
-  });
-  if (state.trades.length > 200) state.trades.pop();
+function addTrade(side,market,platform,price,size,pnl) {
+  state.trades.unshift({time:timeStr(state.simTime),side,market,platform,price:fmt(price),size:fmtUsdAbs(Math.abs(size)),pnl:fmt(pnl),pnlNum:pnl});
+  if(state.trades.length>200)state.trades.pop();
+}
+function addEvent(type,msg) {
+  state.events.unshift({type,msg,time:timeStr(state.simTime)});
+  if(state.events.length>30)state.events.pop();
 }
 
-function addEvent(type, msg) {
-  state.events.unshift({ type, msg, time: timeStr(state.simTime) });
-  if (state.events.length > 50) state.events.pop();
-}
-
-// --- Canvas Chart Rendering ---
+// --- Canvas Charts ---
 function drawEquityChart() {
   const canvas = document.getElementById('equity-chart');
   const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = window.devicePixelRatio||1;
   const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width * dpr;
-  canvas.height = 180 * dpr;
-  ctx.scale(dpr, dpr);
-  const W = rect.width, H = 180;
-
+  if(rect.width<10||rect.height<10)return;
+  canvas.width=rect.width*dpr; canvas.height=rect.height*dpr;
+  ctx.scale(dpr,dpr);
+  const W=rect.width, H=rect.height;
   ctx.clearRect(0,0,W,H);
 
-  const data = state.equityCurve.slice(-200);
-  if (data.length < 2) return;
+  const data=state.equityCurve.slice(-200);
+  if(data.length<2)return;
+  const min=Math.min(...data)*0.998, max=Math.max(...data)*1.002, range=max-min||1;
 
-  const min = Math.min(...data) * 0.998;
-  const max = Math.max(...data) * 1.002;
-  const range = max - min || 1;
+  ctx.strokeStyle='rgba(42,53,80,0.4)'; ctx.lineWidth=0.5;
+  for(let i=0;i<4;i++){const y=H*i/3;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+    ctx.fillStyle='#64748b';ctx.font='9px monospace';ctx.fillText('$'+fmt(max-range*i/3,0),2,y+10);}
 
-  // Grid
-  ctx.strokeStyle = 'rgba(42,53,80,0.5)';
-  ctx.lineWidth = 0.5;
-  for (let i=0;i<5;i++) {
-    const y = H * i/4;
-    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
-    ctx.fillStyle = '#64748b';
-    ctx.font = '10px monospace';
-    ctx.fillText('$'+fmt(max - range*i/4,0), 4, y+12);
-  }
-
-  // Line
-  const gradient = ctx.createLinearGradient(0,0,0,H);
-  const last = data[data.length-1];
-  const isUp = last >= state.startBalance;
-  gradient.addColorStop(0, isUp?'rgba(16,185,129,0.3)':'rgba(239,68,68,0.3)');
-  gradient.addColorStop(1, 'rgba(10,14,23,0)');
+  const last=data[data.length-1], isUp=last>=state.startBalance;
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,isUp?'rgba(16,185,129,0.25)':'rgba(239,68,68,0.25)');
+  grad.addColorStop(1,'rgba(10,14,23,0)');
 
   ctx.beginPath();
-  data.forEach((v,i) => {
-    const x = i/(data.length-1)*W;
-    const y = H - (v-min)/range*H;
-    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
-  });
-  ctx.strokeStyle = isUp?'#10b981':'#ef4444';
-  ctx.lineWidth = 2;
-  ctx.stroke();
+  data.forEach((v,i)=>{const x=i/(data.length-1)*W,y=H-(v-min)/range*H;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
+  ctx.strokeStyle=isUp?'#10b981':'#ef4444'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
 
-  // Fill
-  ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();
-  ctx.fillStyle = gradient;
-  ctx.fill();
-
-  // Current value label
-  ctx.fillStyle = isUp?'#10b981':'#ef4444';
-  ctx.font = 'bold 12px monospace';
-  ctx.fillText(fmtUsdAbs(last), W-100, 16);
+  ctx.fillStyle=isUp?'#10b981':'#ef4444';ctx.font='bold 11px monospace';
+  ctx.fillText(fmtUsdAbs(last),W-90,14);
 }
 
 function drawSpreadChart() {
   const canvas = document.getElementById('spread-chart');
   const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = window.devicePixelRatio||1;
   const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width * dpr;
-  canvas.height = 220 * dpr;
-  ctx.scale(dpr, dpr);
-  const W = rect.width, H = 220;
-
+  if(rect.width<10||rect.height<10)return;
+  canvas.width=rect.width*dpr; canvas.height=rect.height*dpr;
+  ctx.scale(dpr,dpr);
+  const W=rect.width, H=rect.height;
   ctx.clearRect(0,0,W,H);
 
-  const data = state.spreadHistory.slice(-150);
-  if (data.length < 2) return;
+  const data=state.spreadHistory.slice(-120);
+  if(data.length<2)return;
+  const max=Math.max(...data,state.minSpread*1.5);
 
-  const min = 0;
-  const max = Math.max(...data, state.minSpread*1.5);
+  const threshY=H-(state.minSpread/max)*H;
+  ctx.strokeStyle='rgba(245,158,11,0.4)';ctx.setLineDash([3,3]);
+  ctx.beginPath();ctx.moveTo(0,threshY);ctx.lineTo(W,threshY);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#f59e0b';ctx.font='9px monospace';ctx.fillText(`Min: ${state.minSpread}%`,W-60,threshY-3);
 
-  // Min spread threshold line
-  const threshY = H - (state.minSpread/max)*H;
-  ctx.strokeStyle = 'rgba(245,158,11,0.5)';
-  ctx.setLineDash([4,4]);
-  ctx.beginPath();ctx.moveTo(0,threshY);ctx.lineTo(W,threshY);ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = '#f59e0b';
-  ctx.font = '10px monospace';
-  ctx.fillText(`Min: ${state.minSpread}%`, W-70, threshY-4);
-
-  // Bars
-  const bw = Math.max(2, W/data.length - 1);
-  data.forEach((v,i) => {
-    const x = i/(data.length)*W;
-    const h = (v/max)*H;
-    const y = H - h;
-    const aboveThresh = v >= state.minSpread;
-    ctx.fillStyle = aboveThresh ? 'rgba(16,185,129,0.7)' : 'rgba(100,116,139,0.3)';
-    ctx.fillRect(x, y, bw, h);
+  const bw=Math.max(2,W/data.length-1);
+  data.forEach((v,i)=>{
+    const x=i/data.length*W,h=(v/max)*H,y=H-h;
+    ctx.fillStyle=v>=state.minSpread?'rgba(16,185,129,0.6)':'rgba(100,116,139,0.25)';
+    ctx.fillRect(x,y,bw,h);
   });
-
-  ctx.fillStyle = '#e2e8f0';
-  ctx.font = 'bold 12px monospace';
-  if (data.length>0) ctx.fillText(`Current: ${fmt(data[data.length-1])}%`, 8, 16);
+  if(data.length>0){ctx.fillStyle='#e2e8f0';ctx.font='bold 10px monospace';ctx.fillText(`${fmt(data[data.length-1])}%`,6,14);}
 }
 
-function drawVolumeChart() {
-  const canvas = document.getElementById('volume-chart');
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width * dpr;
-  canvas.height = 200 * dpr;
-  ctx.scale(dpr, dpr);
-  const W = rect.width, H = 200;
-
-  ctx.clearRect(0,0,W,H);
-
-  const cats = {};
-  liveMarkets.forEach(m => {
-    cats[m.category] = (cats[m.category]||0) + m.vol24h;
-  });
-
-  const entries = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
-  const maxVol = entries[0]?entries[0][1]:1;
-  const barH = Math.min(22, (H-20)/entries.length);
-  const colors = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4','#f97316','#ec4899'];
-
-  entries.forEach(([cat,vol],i) => {
-    const y = i*(barH+4)+10;
-    const w = (vol/maxVol)*(W-120);
-
-    ctx.fillStyle = colors[i%colors.length]+'33';
-    ctx.fillRect(100, y, w, barH);
-    ctx.fillStyle = colors[i%colors.length];
-    ctx.fillRect(100, y, w, barH);
-    ctx.globalAlpha = 0.3;
-    ctx.fillRect(100, y, w, barH);
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = colors[i%colors.length];
-    ctx.fillRect(100, y, Math.min(w, 3), barH);
-
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '11px monospace';
-    ctx.textAlign = 'right';
-    ctx.fillText(cat, 92, y+barH/2+4);
-    ctx.textAlign = 'left';
-    ctx.fillStyle = '#e2e8f0';
-    ctx.fillText('$'+(vol/1e6).toFixed(1)+'M', 100+w+6, y+barH/2+4);
-  });
-}
-
-// --- Order Book Rendering ---
+// --- Order Book ---
 function renderOrderBook() {
-  const m = liveMarkets[state.selectedMarket];
-  if (!m) return;
+  const m=liveMarkets[state.selectedMarket]; if(!m)return;
+  document.getElementById('ob-market').textContent=m.name.slice(0,28);
 
-  document.getElementById('ob-market').textContent = m.name;
-
-  // Generate synthetic order book around current price
-  function genBook(mid, id) {
-    const asksEl = document.getElementById(id+'-asks');
-    const bidsEl = document.getElementById(id+'-bids');
-    const midEl = document.getElementById(id+'-mid');
-    let asksHtml='', bidsHtml='';
-
-    const maxQty = 500;
-    for (let i=5;i>=1;i--) {
-      const p = clamp(mid + i*0.5 + rand(0,0.3), 1, 99);
-      const q = randInt(20,400);
-      const pct = q/maxQty*100;
-      asksHtml += `<div class="ob-row ask"><span class="price">${fmt(p)}</span><span class="qty">${q}</span><span class="total">$${fmt(q*p/100)}</span><div class="fill" style="width:${pct}%"></div></div>`;
+  function genBook(mid,id) {
+    const asksEl=document.getElementById(id+'-asks'),bidsEl=document.getElementById(id+'-bids'),midEl=document.getElementById(id+'-mid');
+    let ah='',bh='';const mq=500;
+    for(let i=4;i>=1;i--){
+      const p=clamp(mid+i*0.5+rand(0,0.3),1,99),q=randInt(20,400),pct=q/mq*100;
+      ah+=`<div class="ob-row ask"><span class="price">${fmt(p)}</span><span class="qty">${q}</span><span class="total">$${fmt(q*p/100)}</span><div class="fill" style="width:${pct}%"></div></div>`;
     }
-    for (let i=1;i<=5;i++) {
-      const p = clamp(mid - i*0.5 - rand(0,0.3), 1, 99);
-      const q = randInt(20,400);
-      const pct = q/maxQty*100;
-      bidsHtml += `<div class="ob-row bid"><span class="price">${fmt(p)}</span><span class="qty">${q}</span><span class="total">$${fmt(q*p/100)}</span><div class="fill" style="width:${pct}%"></div></div>`;
+    for(let i=1;i<=4;i++){
+      const p=clamp(mid-i*0.5-rand(0,0.3),1,99),q=randInt(20,400),pct=q/mq*100;
+      bh+=`<div class="ob-row bid"><span class="price">${fmt(p)}</span><span class="qty">${q}</span><span class="total">$${fmt(q*p/100)}</span><div class="fill" style="width:${pct}%"></div></div>`;
     }
-
-    asksEl.innerHTML = asksHtml;
-    bidsEl.innerHTML = bidsHtml;
-    midEl.textContent = fmt(mid) + '¢';
+    asksEl.innerHTML=ah; bidsEl.innerHTML=bh; midEl.textContent=fmt(mid)+'¢';
   }
-
-  genBook(m.polyYes, 'ob-poly');
-  genBook(m.kalshiYes, 'ob-kalshi');
+  genBook(m.polyYes,'ob-poly'); genBook(m.kalshiYes,'ob-kalshi');
 }
 
 // --- UI Rendering ---
 function renderArbTable() {
-  const body = document.getElementById('arb-body');
-  let html = '';
-  liveMarkets.forEach((m,i) => {
-    const isExecuting = state.positions.find(p => p.marketId === m.id);
-    const spreadPct = Math.min(m.spread/10*100, 100);
-    const spreadColor = m.spread >= state.minSpread ? 'var(--green)' : 'var(--text3)';
-    html += `<tr class="${isExecuting?'executing':''}" onclick="state.selectedMarket=${i}" style="cursor:pointer;${i===state.selectedMarket?'background:var(--surface2)':''}">
+  const body=document.getElementById('arb-body');
+  let html='';
+  liveMarkets.forEach((m,i)=>{
+    const isExec=state.positions.find(p=>p.marketId===m.id);
+    const spPct=Math.min(m.spread/10*100,100);
+    const spCol=m.spread>=state.minSpread?'var(--green)':'var(--text3)';
+    html+=`<tr class="${isExec?'executing':''} ${i===state.selectedMarket?'selected':''}" onclick="state.selectedMarket=${i}" style="cursor:pointer">
       <td style="color:var(--text3)">${i+1}</td>
-      <td class="market-name">${m.name}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis">${m.name}</td>
       <td style="color:var(--text2)">${m.category}</td>
       <td class="price-poly">${fmt(m.polyYes)}¢</td>
       <td class="price-kalshi">${fmt(m.kalshiYes)}¢</td>
-      <td><div class="spread-bar"><span style="color:${spreadColor};font-weight:700">${fmt(m.spread)}%</span><div class="spread-fill" style="width:${spreadPct}px;background:${spreadColor}"></div></div></td>
-      <td style="font-size:11px;color:var(--text2)">${m.direction}</td>
-      <td style="color:${m.estProfit>0?'var(--green)':'var(--text3)'};font-weight:600">${fmtUsdAbs(m.estProfit)}</td>
+      <td><div class="spread-bar"><span style="color:${spCol};font-weight:700">${fmt(m.spread)}%</span><div class="spread-fill" style="width:${spPct}px;background:${spCol}"></div></div></td>
+      <td style="font-size:9px;color:var(--text2)">${m.direction}</td>
+      <td style="color:${m.estProfit>0?'var(--green)':'var(--text3)'};font-weight:600">$${fmt(m.estProfit)}</td>
       <td style="color:var(--text2)">$${(m.vol24h/1e6).toFixed(1)}M</td>
-      <td><span style="color:${m.liq==='High'?'var(--green)':m.liq==='Medium'?'var(--yellow)':'var(--red)'}">${m.liq}</span></td>
-      <td>${isExecuting?'<span style="color:var(--blue);font-weight:600">ACTIVE</span>':m.spread>=state.minSpread?'<span style="color:var(--green)">READY</span>':'<span style="color:var(--text3)">WATCH</span>'}</td>
+      <td>${isExec?'<span style="color:var(--blue);font-weight:600">ACTIVE</span>':m.spread>=state.minSpread?'<span style="color:var(--green)">READY</span>':'<span style="color:var(--text3)">WATCH</span>'}</td>
     </tr>`;
   });
-  body.innerHTML = html;
+  body.innerHTML=html;
 }
 
 function renderPositions() {
-  const body = document.getElementById('pos-body');
-  document.getElementById('pos-count').textContent = state.positions.length;
-  let html = '';
-  let totalUnrealized = 0;
-
-  state.positions.forEach(pos => {
-    const m = liveMarkets.find(mm => mm.id === pos.marketId);
-    const current = m ? (pos.buyPlatform==='Polymarket'?m.polyYes:m.kalshiYes) : pos.buyPrice;
-    const unrealized = (current - pos.buyPrice) * pos.contracts / 100;
-    totalUnrealized += unrealized;
-
-    html += `<tr>
-      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis">${pos.marketName}</td>
-      <td style="color:var(--green);font-weight:600">${pos.side}</td>
-      <td><span style="color:${pos.buyPlatform==='Polymarket'?'var(--poly)':'var(--kalshi)'}">${pos.buyPlatform.slice(0,4)}</span></td>
+  const body=document.getElementById('pos-body');
+  document.getElementById('pos-count').textContent=state.positions.length;
+  let html='',totalU=0;
+  state.positions.forEach(pos=>{
+    const m=liveMarkets.find(mm=>mm.id===pos.marketId);
+    const cur=m?(pos.buyPlatform==='Polymarket'?m.polyYes:m.kalshiYes):pos.buyPrice;
+    const u=(cur-pos.buyPrice)*pos.contracts/100; totalU+=u;
+    html+=`<tr>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis">${pos.marketName}</td>
+      <td style="color:${pos.buyPlatform==='Polymarket'?'var(--poly)':'var(--kalshi)'}">${pos.buyPlatform.slice(0,4)}</td>
       <td>${fmt(pos.buyPrice)}¢</td>
-      <td>${fmt(current)}¢</td>
+      <td>${fmt(cur)}¢</td>
       <td>${fmtUsdAbs(pos.cost)}</td>
-      <td style="color:${unrealized>=0?'var(--green)':'var(--red)';font-weight:600}">${fmtUsd(unrealized)}</td>
-      <td><button class="btn sm" onclick="forceClose('${pos.id}')" style="font-size:10px;padding:2px 6px">Close</button></td>
+      <td style="color:${u>=0?'var(--green)':'var(--red)'};font-weight:600">${fmtUsd(u)}</td>
     </tr>`;
   });
-  body.innerHTML = html || '<tr><td colspan="8" style="text-align:center;color:var(--text3);padding:20px">No open positions</td></tr>';
-  state.unrealizedPnl = totalUnrealized;
+  body.innerHTML=html||'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:12px">No open positions</td></tr>';
+  state.unrealizedPnl=totalU;
 }
 
 function renderTradeLog() {
-  const body = document.getElementById('trade-log-body');
-  document.getElementById('log-count').textContent = state.trades.length + ' trades';
-  let html = '';
-  state.trades.slice(0,50).forEach(t => {
-    html += `<div class="trade-entry">
+  document.getElementById('log-count').textContent=state.trades.length;
+  let html='';
+  state.trades.slice(0,30).forEach(t=>{
+    html+=`<div class="trade-entry">
       <span class="time">${t.time}</span>
       <span class="side-${t.side.toLowerCase()}">${t.side}</span>
       <span style="overflow:hidden;text-overflow:ellipsis">${t.market}</span>
-      <span style="color:${t.platform==='Polymarket'?'var(--poly)':'var(--kalshi)'}">${t.platform}</span>
+      <span style="color:${t.platform==='Polymarket'?'var(--poly)':'var(--kalshi)'}">${t.platform.slice(0,4)}</span>
       <span>${t.price}¢</span>
       <span>${t.size}</span>
       <span class="profit ${parseFloat(t.pnl)>=0?'positive':'negative'}">${t.side==='SELL'?fmtUsd(parseFloat(t.pnl)):''}</span>
     </div>`;
   });
-  body.innerHTML = html;
+  document.getElementById('trade-log-body').innerHTML=html;
 }
 
 function renderEvents() {
-  const feed = document.getElementById('event-feed');
-  feed.innerHTML = state.events.map(e =>
-    `<div class="event-item ${e.type}"><span class="etime">${e.time}</span> ${e.msg}</div>`
+  document.getElementById('event-feed').innerHTML=state.events.map(e=>
+    `<div class="event-item ${e.type}"><span class="etime">${e.time}</span>${e.msg}</div>`
   ).join('');
 }
 
 function renderRisk() {
-  const exposure = state.positions.reduce((s,p)=>s+p.cost, 0);
-  const expPct = exposure / state.startBalance * 100;
-  const equity = state.balance + state.unrealizedPnl + exposure;
-  if (equity > state.maxEquity) state.maxEquity = equity;
-  const dd = (state.maxEquity - equity) / state.maxEquity * 100;
-  if (dd > state.maxDrawdown) state.maxDrawdown = dd;
-  const varVal = exposure * 0.05;
-  const marginPct = exposure / state.balance * 100;
+  const exposure=state.positions.reduce((s,p)=>s+p.cost,0);
+  const expPct=exposure/state.startBalance*100;
+  const equity=state.balance+state.unrealizedPnl+exposure;
+  if(equity>state.maxEquity)state.maxEquity=equity;
+  const dd=(state.maxEquity-equity)/state.maxEquity*100;
+  if(dd>state.maxDrawdown)state.maxDrawdown=dd;
+  const varVal=exposure*0.05;
+  const marginPct=state.balance>0?exposure/state.balance*100:0;
 
-  document.getElementById('risk-exposure').textContent = fmtUsdAbs(exposure);
-  document.getElementById('risk-dd').textContent = fmt(state.maxDrawdown)+'%';
-  document.getElementById('risk-var').textContent = fmtUsdAbs(varVal);
-  document.getElementById('risk-margin').textContent = fmt(marginPct)+'%';
+  document.getElementById('risk-exposure').textContent=fmtUsdAbs(exposure);
+  document.getElementById('risk-dd').textContent=fmt(state.maxDrawdown)+'%';
+  document.getElementById('risk-var').textContent=fmtUsdAbs(varVal);
+  document.getElementById('risk-margin').textContent=fmt(marginPct)+'%';
 
-  const setMeter = (id, pct, thresholds=[30,60]) => {
-    const el = document.getElementById(id);
-    el.style.width = Math.min(pct,100)+'%';
-    el.style.background = pct < thresholds[0] ? 'var(--green)' : pct < thresholds[1] ? 'var(--yellow)' : 'var(--red)';
-  };
-  setMeter('risk-exp-fill', expPct);
-  setMeter('risk-dd-fill', state.maxDrawdown, [5,15]);
-  setMeter('risk-var-fill', varVal/state.startBalance*100);
-  setMeter('risk-margin-fill', marginPct);
+  const setM=(id,pct,th=[30,60])=>{const el=document.getElementById(id);el.style.width=Math.min(pct,100)+'%';el.style.background=pct<th[0]?'var(--green)':pct<th[1]?'var(--yellow)':'var(--red)'};
+  setM('risk-exp-fill',expPct);setM('risk-dd-fill',state.maxDrawdown,[5,15]);
+  setM('risk-var-fill',varVal/state.startBalance*100);setM('risk-margin-fill',marginPct);
 
-  // Correlation risk
-  const cats = new Set(state.positions.map(p => {
-    const m = liveMarkets.find(mm=>mm.id===p.marketId);
-    return m?m.category:'';
-  }));
-  const corrLevel = cats.size <= 1 ? 'Low' : cats.size <= 3 ? 'Medium' : 'High';
-  document.getElementById('risk-corr').textContent = corrLevel;
-  const corrPct = cats.size * 20;
-  setMeter('risk-corr-fill', corrPct);
+  const cats=new Set(state.positions.map(p=>{const m=liveMarkets.find(mm=>mm.id===p.marketId);return m?m.category:''}));
+  const cl=cats.size<=1?'Low':cats.size<=3?'Medium':'High';
+  document.getElementById('risk-corr').textContent=cl;setM('risk-corr-fill',cats.size*20);
 
-  // Hedge ratio
-  const hedgeRatio = state.positions.length > 0 ? clamp(1 - (dd/20), 0.5, 1.2) : 1.0;
-  document.getElementById('risk-hedge').textContent = fmt(hedgeRatio);
-  document.getElementById('risk-hedge-fill').style.width = (hedgeRatio/1.5*100)+'%';
+  const hr=state.positions.length>0?clamp(1-(dd/20),0.5,1.2):1.0;
+  document.getElementById('risk-hedge').textContent=fmt(hr);
+  document.getElementById('risk-hedge-fill').style.width=(hr/1.5*100)+'%';
 }
 
 function renderHeader() {
-  const totalPnl = state.realizedPnl + state.unrealizedPnl;
-  document.getElementById('hdr-pnl').textContent = fmtUsd(totalPnl);
-  document.getElementById('hdr-pnl').className = 'value ' + (totalPnl>=0?'positive':'negative');
+  const totalPnl=state.realizedPnl+state.unrealizedPnl;
+  document.getElementById('hdr-pnl').textContent=fmtUsd(totalPnl);
+  document.getElementById('hdr-pnl').className='value '+(totalPnl>=0?'positive':'negative');
+  const tot=state.wins+state.losses;
+  document.getElementById('hdr-winrate').textContent=(tot>0?fmt(state.wins/tot*100,1):'0')+'%';
+  document.getElementById('hdr-active').textContent=state.positions.length;
+  document.getElementById('hdr-trades').textContent=tot;
+  document.getElementById('hdr-balance').textContent=fmtUsdAbs(state.balance);
 
-  const totalTrades = state.wins + state.losses;
-  const winRate = totalTrades > 0 ? (state.wins/totalTrades*100) : 0;
-  document.getElementById('hdr-winrate').textContent = fmt(winRate,1)+'%';
-  document.getElementById('hdr-active').textContent = state.positions.length;
-  document.getElementById('hdr-trades').textContent = totalTrades;
-  document.getElementById('hdr-balance').textContent = fmtUsdAbs(state.balance);
+  document.getElementById('pnl-realized').textContent=fmtUsd(state.realizedPnl);
+  document.getElementById('pnl-realized').className='val '+(state.realizedPnl>=0?'positive':'negative');
+  document.getElementById('pnl-realized-pct').textContent=(state.realizedPnl>=0?'+':'')+fmt(state.realizedPnl/state.startBalance*100)+'%';
+  document.getElementById('pnl-unrealized').textContent=fmtUsd(state.unrealizedPnl);
+  document.getElementById('pnl-unrealized').className='val '+(state.unrealizedPnl>=0?'positive':'negative');
+  document.getElementById('pnl-positions').textContent=state.positions.length+' pos';
+  document.getElementById('pnl-total-trades').textContent=tot;
+  document.getElementById('pnl-win-loss').textContent=`W:${state.wins} / L:${state.losses}`;
+  const avg=tot>0?state.realizedPnl/tot:0;
+  document.getElementById('pnl-avg').textContent=fmtUsd(avg);
+  document.getElementById('pnl-avg').className='val '+(avg>=0?'positive':'negative');
 
-  document.getElementById('pnl-realized').textContent = fmtUsd(state.realizedPnl);
-  document.getElementById('pnl-realized').className = 'val '+(state.realizedPnl>=0?'positive':'negative');
-  document.getElementById('pnl-realized-pct').textContent = (state.realizedPnl>=0?'+':'')+fmt(state.realizedPnl/state.startBalance*100)+'%';
-  document.getElementById('pnl-unrealized').textContent = fmtUsd(state.unrealizedPnl);
-  document.getElementById('pnl-unrealized').className = 'val '+(state.unrealizedPnl>=0?'positive':'negative');
-  document.getElementById('pnl-positions').textContent = state.positions.length+' positions';
-  document.getElementById('pnl-total-trades').textContent = totalTrades;
-  document.getElementById('pnl-win-loss').textContent = `W: ${state.wins} / L: ${state.losses}`;
-  const avgPnl = totalTrades > 0 ? state.realizedPnl / totalTrades : 0;
-  document.getElementById('pnl-avg').textContent = fmtUsd(avgPnl);
-  document.getElementById('pnl-avg').className = 'val '+(avgPnl>=0?'positive':'negative');
-
-  // Sharpe approximation
-  const returns = [];
-  for (let i=1;i<state.equityCurve.length;i++) {
-    returns.push((state.equityCurve[i]-state.equityCurve[i-1])/state.equityCurve[i-1]);
-  }
-  if (returns.length > 10) {
-    const mean = returns.reduce((s,v)=>s+v,0)/returns.length;
-    const std = Math.sqrt(returns.reduce((s,v)=>s+(v-mean)**2,0)/returns.length);
-    const sharpe = std > 0 ? (mean/std)*Math.sqrt(252) : 0;
-    document.getElementById('pnl-sharpe').textContent = `Sharpe: ${fmt(sharpe)}`;
+  const returns=[];
+  for(let i=1;i<state.equityCurve.length;i++) returns.push((state.equityCurve[i]-state.equityCurve[i-1])/state.equityCurve[i-1]);
+  if(returns.length>10){
+    const mean=returns.reduce((s,v)=>s+v,0)/returns.length;
+    const std=Math.sqrt(returns.reduce((s,v)=>s+(v-mean)**2,0)/returns.length);
+    document.getElementById('pnl-sharpe').textContent=`Sharpe: ${std>0?fmt((mean/std)*Math.sqrt(252)):'--'}`;
   }
 }
 
 function renderStatusBar() {
-  document.getElementById('sim-clock').textContent = timeStr(state.simTime);
-  document.getElementById('tick-count').textContent = state.tick;
-  document.getElementById('latency').textContent = randInt(8,45)+'ms';
-  document.getElementById('data-age').textContent = '0s';
-  document.getElementById('bot-pulse').style.display = state.botActive ? '' : 'none';
+  document.getElementById('sim-clock').textContent=timeStr(state.simTime);
+  document.getElementById('tick-count').textContent=state.tick;
+  document.getElementById('latency').textContent=randInt(8,45)+'ms';
+  document.getElementById('bot-pulse').style.display=state.botActive?'':'none';
 }
 
-// --- Force close a position ---
-window.forceClose = function(posId) {
-  const idx = state.positions.findIndex(p => String(p.id) === String(posId));
-  if (idx === -1) return;
-  const pos = state.positions[idx];
-  const m = liveMarkets.find(mm => mm.id === pos.marketId);
-  const current = m ? (pos.buyPlatform==='Polymarket'?m.polyYes:m.kalshiYes) : pos.buyPrice;
-  const pnl = (current - pos.buyPrice) * pos.contracts / 100 + pos.entrySpread * pos.contracts / 200;
-  state.balance += pos.cost + pnl;
-  state.realizedPnl += pnl;
-  if (pnl >= 0) state.wins++; else state.losses++;
-  addTrade('SELL', pos.marketName, pos.sellPlatform, current, pos.cost+pnl, pnl);
-  addEvent(pnl>=0?'success':'warning', `Manually closed ${pos.marketName} for ${fmtUsd(pnl)}`);
-  state.positions.splice(idx, 1);
-};
-
-// --- Main Simulation Loop ---
+// --- Main Loop ---
 let simInterval;
 
 function tick() {
-  state.tick++;
-  state.simTime += state.speed;
-
+  state.tick++; state.simTime+=state.speed;
   tickPrices();
+  if(state.botActive){tryExecuteArbs();managePositions();}
 
-  if (state.botActive) {
-    tryExecuteArbs();
-    managePositions();
+  const exposure=state.positions.reduce((s,p)=>s+p.cost,0);
+  state.equityCurve.push(state.balance+state.unrealizedPnl+exposure);
+  if(state.equityCurve.length>500)state.equityCurve.shift();
+  if(liveMarkets.length>0){state.spreadHistory.push(liveMarkets[0].spread);if(state.spreadHistory.length>300)state.spreadHistory.shift();}
+
+  if(Math.random()<0.01){
+    const evts=[['info','Volatility spike detected'],['warning','High latency on Kalshi WS'],['info','New market listed'],['info','Liquidity pool refreshed'],['warning','Position correlation rising'],['success','API rate limits healthy: 847/1000']];
+    const[t,m]=evts[randInt(0,evts.length-1)];addEvent(t,m);
   }
 
-  // Track equity
-  const exposure = state.positions.reduce((s,p)=>s+p.cost, 0);
-  const equity = state.balance + state.unrealizedPnl + exposure;
-  state.equityCurve.push(equity);
-  if (state.equityCurve.length > 500) state.equityCurve.shift();
-
-  // Track spread of top opportunity
-  if (liveMarkets.length > 0) {
-    state.spreadHistory.push(liveMarkets[0].spread);
-    if (state.spreadHistory.length > 300) state.spreadHistory.shift();
-  }
-
-  // Random events
-  if (Math.random() < 0.01) {
-    const events = [
-      ['info','Market volatility spike detected - adjusting spread thresholds'],
-      ['warning','High latency detected on Kalshi WebSocket - monitoring'],
-      ['info','New market listed: AI regulation bill vote outcome'],
-      ['info','Polymarket liquidity pool refreshed - spreads tightening'],
-      ['warning','Position correlation increasing - diversification recommended'],
-      ['info','Fee optimization: using limit orders for better execution'],
-      ['success','API rate limits healthy - 847/1000 requests remaining'],
-      ['info','Order book depth increased on BTC prediction markets'],
-    ];
-    const [t,m] = events[randInt(0,events.length-1)];
-    addEvent(t,m);
-  }
-
-  // Render everything
-  renderArbTable();
-  renderHeader();
-  renderPositions();
-  renderTradeLog();
-  renderEvents();
-  renderRisk();
-  renderOrderBook();
-  renderStatusBar();
-  drawEquityChart();
-  drawSpreadChart();
-
-  // Volume chart less often
-  if (state.tick % 5 === 0) drawVolumeChart();
+  renderArbTable();renderHeader();renderPositions();renderTradeLog();
+  renderEvents();renderRisk();renderOrderBook();renderStatusBar();
+  drawEquityChart();drawSpreadChart();
 }
 
-function startSim() {
-  clearInterval(simInterval);
-  simInterval = setInterval(tick, state.speed);
-}
+function startSim(){clearInterval(simInterval);simInterval=setInterval(tick,state.speed)}
 
 function resetSim() {
   clearInterval(simInterval);
-  state = {
-    balance:10000, startBalance:10000, realizedPnl:0, unrealizedPnl:0,
-    positions:[], trades:[], equityCurve:[10000], spreadHistory:[],
-    wins:0, losses:0, tick:0, simTime:0,
-    botActive: document.getElementById('bot-toggle').checked,
-    speed: parseInt(document.getElementById('sim-speed').value),
-    minSpread: parseFloat(document.getElementById('min-spread').value),
-    maxPos: parseFloat(document.getElementById('max-pos').value),
-    riskMode: document.getElementById('risk-mode').value,
-    strategy: state.strategy,
-    events: [{type:'info',msg:'Simulation reset. All positions closed. Starting fresh.',time:'00:00:00'}],
-    maxEquity:10000, maxDrawdown:0, selectedMarket:0,
-  };
-  liveMarkets = MARKETS.map(m => ({
-    ...m, polyYes:m.basePolyYes, kalshiYes:m.baseKalshiYes,
-    polyNo:100-m.basePolyYes, kalshiNo:100-m.baseKalshiYes,
-    spread:0, direction:'', estProfit:0,
-  }));
-  startSim();
+  state={balance:10000,startBalance:10000,realizedPnl:0,unrealizedPnl:0,positions:[],trades:[],equityCurve:[10000],spreadHistory:[],wins:0,losses:0,tick:0,simTime:0,botActive:document.getElementById('bot-toggle').checked,speed:parseInt(document.getElementById('sim-speed').value),minSpread:parseFloat(document.getElementById('min-spread').value),maxPos:parseFloat(document.getElementById('max-pos').value),riskMode:document.getElementById('risk-mode').value,strategy:state.strategy,events:[{type:'info',msg:'Simulation reset.',time:'00:00:00'}],maxEquity:10000,maxDrawdown:0,selectedMarket:0};
+  initMarkets(); startSim();
 }
 
-// --- Event Listeners ---
-document.getElementById('bot-toggle').addEventListener('change', e => {
-  state.botActive = e.target.checked;
-  addEvent(e.target.checked?'success':'warning', 'Bot '+(e.target.checked?'ACTIVATED':'PAUSED'));
-});
+// --- Events ---
+document.getElementById('bot-toggle').addEventListener('change',e=>{state.botActive=e.target.checked;addEvent(e.target.checked?'success':'warning','Bot '+(e.target.checked?'ACTIVATED':'PAUSED'))});
+document.getElementById('sim-speed').addEventListener('change',e=>{state.speed=parseInt(e.target.value);startSim()});
+document.getElementById('min-spread').addEventListener('change',e=>{state.minSpread=parseFloat(e.target.value);addEvent('info',`Min spread: ${state.minSpread}%`)});
+document.getElementById('max-pos').addEventListener('change',e=>{state.maxPos=parseFloat(e.target.value);addEvent('info',`Max position: $${state.maxPos}`)});
+document.getElementById('risk-mode').addEventListener('change',e=>{state.riskMode=e.target.value;addEvent('info',`Risk: ${state.riskMode}`)});
+document.getElementById('btn-reset').addEventListener('click',resetSim);
+document.querySelectorAll('[data-strat]').forEach(btn=>{btn.addEventListener('click',e=>{document.querySelectorAll('[data-strat]').forEach(b=>b.classList.remove('active'));e.target.classList.add('active');state.strategy=e.target.dataset.strat;addEvent('info',`Strategy: ${state.strategy}`)})});
 
-document.getElementById('sim-speed').addEventListener('change', e => {
-  state.speed = parseInt(e.target.value);
-  startSim();
-});
+// --- Init: populate markets immediately, render first frame, then start ---
+initMarkets();
+addEvent('info','ArbEdge v2.0 initialized');
+addEvent('success','Connected to Polymarket WebSocket');
+addEvent('success','Connected to Kalshi REST API');
+addEvent('info','Loaded 18 cross-listed markets');
 
-document.getElementById('min-spread').addEventListener('change', e => {
-  state.minSpread = parseFloat(e.target.value);
-  addEvent('info', `Min spread threshold updated to ${state.minSpread}%`);
-});
+// Render first frame synchronously so markets show instantly
+renderArbTable();renderHeader();renderPositions();renderTradeLog();
+renderEvents();renderRisk();renderOrderBook();renderStatusBar();
 
-document.getElementById('max-pos').addEventListener('change', e => {
-  state.maxPos = parseFloat(e.target.value);
-  addEvent('info', `Max position size updated to $${state.maxPos}`);
-});
+// Defer chart draws to after layout
+requestAnimationFrame(()=>{drawEquityChart();drawSpreadChart()});
 
-document.getElementById('risk-mode').addEventListener('change', e => {
-  state.riskMode = e.target.value;
-  addEvent('info', `Risk mode changed to ${state.riskMode}`);
-});
-
-document.getElementById('btn-reset').addEventListener('click', resetSim);
-
-document.querySelectorAll('[data-strat]').forEach(btn => {
-  btn.addEventListener('click', e => {
-    document.querySelectorAll('[data-strat]').forEach(b=>b.classList.remove('active'));
-    e.target.classList.add('active');
-    state.strategy = e.target.dataset.strat;
-    addEvent('info', `Strategy switched to ${state.strategy}`);
-  });
-});
-
-// --- Init ---
-addEvent('info', 'ArbEdge v2.0 initialized - Polymarket & Kalshi arbitrage scanner online');
-addEvent('success', 'Connected to Polymarket WebSocket API');
-addEvent('success', 'Connected to Kalshi REST API');
-addEvent('info', 'Loading 18 cross-listed prediction markets...');
-drawVolumeChart();
 startSim();
 </script>
 </body>
