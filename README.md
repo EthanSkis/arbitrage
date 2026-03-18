@@ -1,54 +1,59 @@
-# ArbEdge — Polymarket & Kalshi Arbitrage Dashboard
+# ArbEdge — BTC 15-Min Arbitrage | Polymarket vs Kalshi
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-3.0-green?style=flat-square" alt="Version">
-  <img src="https://img.shields.io/badge/markets-Polymarket%20%7C%20Kalshi-blue?style=flat-square" alt="Markets">
+  <img src="https://img.shields.io/badge/version-4.0-green?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/asset-Bitcoin-orange?style=flat-square" alt="Asset">
+  <img src="https://img.shields.io/badge/interval-15--minute-blue?style=flat-square" alt="Interval">
   <img src="https://img.shields.io/badge/trading-simulated-yellow?style=flat-square" alt="Trading Mode">
   <img src="https://img.shields.io/badge/data-live-brightgreen?style=flat-square" alt="Data Source">
   <img src="https://img.shields.io/badge/license-MIT-gray?style=flat-square" alt="License">
 </p>
 
-**ArbEdge** is a real-time cross-platform prediction market arbitrage scanner and paper trading simulator. It fetches **live market data** from [Polymarket](https://polymarket.com) and [Kalshi](https://kalshi.com), automatically detects arbitrage opportunities by matching equivalent markets across both platforms, and runs a configurable simulated trading engine on real prices.
+**ArbEdge** is a real-time Bitcoin 15-minute up/down arbitrage scanner and paper trading simulator. It fetches **live market data** from both [Polymarket](https://polymarket.com) and [Kalshi](https://kalshi.com), matches identical BTC 15-minute prediction windows across platforms by timestamp, and runs a realistic simulated trading engine with real-world cost modeling.
 
 > **Disclaimer:** This tool is for **educational and research purposes only**. It performs **simulated (paper) trading** — no real orders are placed. Prediction market trading involves risk. Always do your own research and comply with applicable regulations.
 
 ---
 
+## What It Does
+
+Both Polymarket and Kalshi offer **"Bitcoin Up or Down"** prediction markets that resolve every 15 minutes. ArbEdge finds cases where the "Up" price differs between the two platforms for the **same time window** — that price difference is an arbitrage opportunity.
+
+**Example:** If Polymarket prices BTC Up at 48¢ and Kalshi prices BTC Up at 53¢ for the same 15-minute window, you could buy on Poly and sell on Kalshi to lock in a 5¢/contract spread.
+
+---
+
 ## Features
 
-### Live Market Data
-- **Polymarket Integration** — Fetches active markets from the [Gamma API](https://gamma-api.polymarket.com) and real-time order books from the [CLOB API](https://clob.polymarket.com)
-- **Kalshi Integration** — Fetches open markets and order books from the [Kalshi Trade API](https://api.elections.kalshi.com/trade-api/v2)
-- **Auto CORS Proxy** — Falls back to a CORS proxy automatically if direct API calls are blocked by the browser
-- **Configurable Refresh Rate** — 5s / 10s / 15s / 30s polling intervals
+### BTC 15-Min Market Focus
+- **Polymarket** — Fetches `btc-updown-15m-*` markets (powered by Chainlink BTC/USD oracles)
+- **Kalshi** — Fetches `KXBTC15M` series markets (powered by CF Benchmarks RTI)
+- **Time-Window Matching** — Pairs markets by their 15-minute window timestamps, not fuzzy keyword matching
+- **No False Matches** — Only pairs markets that cover the exact same 15-minute period
 
-### Cross-Platform Arbitrage Detection
-- **Keyword Matching Engine** — Automatically matches equivalent markets across Polymarket and Kalshi using NLP-based keyword extraction and fuzzy scoring
-- **Spread Calculation** — Computes the YES price differential between matched pairs and identifies the optimal direction (Buy Poly / Sell Kalshi or vice versa)
-- **Multi-Leg Detection** — Identifies hedge opportunities where buying YES on one platform + NO on the other guarantees profit
-- **Match Scoring** — Ranks pairs by match confidence and spread size
-
-### Paper Trading Simulator
-- **Auto-Trading Bot** — Configurable bot that automatically enters arbitrage positions when spread exceeds your threshold
-- **Position Management** — Automatic exit on spread collapse, reversal, or timeout
-- **Three Strategies:**
-  - **Cross-Market** — Standard cross-platform spread capture
-  - **Hedged** — Balanced positions across both platforms
-  - **Scalp** — Quick in-and-out on temporary spread spikes
-- **Risk Modes:** Conservative (0.5x), Moderate (1x), Aggressive (1.5x) position sizing
+### Realistic Trading Simulator
+- **Hold-to-Resolution** — Positions are held until the 15-minute window ends (the real arb strategy)
+- **Platform Fees** — Polymarket ~2% taker + gas, Kalshi 7% profit fee + 1¢/contract
+- **Bid-Ask Slippage** — 0.5% average spread crossing + market impact scaling with order size
+- **Partial Fills** — 75-95% fill rate simulation (real order books have limited depth)
+- **Annualized ROI** — Shows what your return would be if you repeated the same trade all year
 
 ### Dashboard Panels (3x3 Grid — No Scrolling)
 
 | Panel | Description |
 |-------|-------------|
-| **Arbitrage Scanner** | Live table of all markets — matched pairs ranked by spread, plus unmatched singles |
-| **Order Book** | Side-by-side Polymarket vs Kalshi order book for selected market (real data when available) |
-| **Performance** | Realized/unrealized P&L, win rate, avg profit per trade, Sharpe ratio, equity curve chart |
-| **Open Positions** | Active paper trades with live P&L |
-| **Spread History** | Bar chart of top opportunity spread over time with min-spread threshold line |
-| **Trade Log** | Full execution history with timestamps, platform, price, and P&L |
-| **Risk Management** | Exposure, max drawdown, VaR (95%), correlation risk, margin usage, hedge ratio |
-| **Event Feed** | Color-coded alerts for trades, API events, and system warnings |
+| **BTC 15-Min Scanner** | Live table of matched time windows with spread, direction, and status |
+| **Order Book** | Side-by-side Polymarket vs Kalshi order book for selected window |
+| **Performance** | Realized P&L, locked profit (pending resolution), net after fees, Sharpe ratio, equity curve |
+| **Open Positions** | Active trades with countdown to resolution, locked profit, and annualized ROI |
+| **Spread History** | Autoscaling bar chart of top spread over time with threshold line |
+| **Trade Log** | Full execution history with BUY/SETTLE entries, fees, and P&L |
+| **Risk Management** | Capital locked, max drawdown, fees paid, slippage cost, avg hold time, annualized ROI |
+| **Event Feed** | Color-coded alerts for trades, skipped opportunities, and API events |
+
+### Charts
+- **Autoscaling** — Both equity and spread charts dynamically scale Y-axis to data range
+- **Y-Axis Labels** — Gridlines with dollar/percentage labels that update as data changes
 
 ### Technical Details
 - **Zero Dependencies** — Single self-contained HTML file, no build step, no npm, no frameworks
@@ -62,11 +67,8 @@
 
 ### Option 1: Open Directly
 ```bash
-# Clone the repo
 git clone https://github.com/EthanSkis/arbitrage.git
 cd arbitrage
-
-# Open in your browser
 open index.html        # macOS
 xdg-open index.html    # Linux
 start index.html       # Windows
@@ -74,121 +76,85 @@ start index.html       # Windows
 
 ### Option 2: Local Server (Recommended for API calls)
 ```bash
-# Python
 python3 -m http.server 8080
-
-# Node.js
-npx serve .
-
 # Then navigate to http://localhost:8080
 ```
 
 ### Option 3: GitHub Pages
-The dashboard is deployable as a static site on GitHub Pages — just enable it in your repo settings pointing to the `main` branch.
+Deploy as a static site — enable GitHub Pages pointing to the `main` branch.
 
 ---
 
 ## Configuration
 
-All settings are configurable via the control bar at the top of the dashboard:
-
 | Setting | Default | Description |
 |---------|---------|-------------|
 | **Bot Toggle** | ON | Enable/disable auto-trading |
-| **Refresh Rate** | 15s | How often to poll APIs for new data |
+| **Refresh Rate** | 15s | How often to poll APIs for new BTC 15-min markets |
 | **Min Spread** | 2% | Minimum spread to trigger an arbitrage trade |
 | **Max Position** | $500 | Maximum dollar size per position |
 | **Risk Mode** | Moderate | Position size multiplier (0.5x / 1x / 1.5x) |
-| **Strategy** | Cross-Mkt | Trading strategy selection |
+| **Strategy** | Cross-Mkt | Hold-to-resolution (default) or Scalp (early exit) |
 
 ---
 
-## API Endpoints Used
+## API Endpoints
 
-### Polymarket (No Authentication Required)
+### Polymarket
 | Endpoint | Purpose |
 |----------|---------|
-| `GET gamma-api.polymarket.com/markets` | Fetch active markets with prices and volume |
-| `GET clob.polymarket.com/book?token_id=X` | Real-time order book for a specific market |
-| `GET clob.polymarket.com/price?token_id=X&side=BUY` | Best bid price |
+| `GET gamma-api.polymarket.com/markets?slug_contains=btc-updown-15m` | BTC 15-min up/down markets |
+| `GET clob.polymarket.com/book?token_id=X` | Real-time order book |
 
-### Kalshi (No Authentication Required)
+### Kalshi
 | Endpoint | Purpose |
 |----------|---------|
-| `GET api.elections.kalshi.com/trade-api/v2/markets` | Fetch open markets with yes/no prices |
+| `GET api.elections.kalshi.com/trade-api/v2/events?series_ticker=KXBTC15M` | BTC 15-min up/down events |
 | `GET api.elections.kalshi.com/trade-api/v2/markets/{ticker}/orderbook` | Order book depth |
 
-> **Note:** API keys are **not required** for reading public market data. Keys are only needed for placing real orders (which this tool does not do).
+> **Note:** No API keys required for reading public market data.
 
 ---
 
-## Architecture
+## How It Works
 
-```
-index.html (single file)
-├── CSS — Full dashboard styling, dark theme, responsive 3x3 grid
-├── HTML — 9-panel dashboard layout, header, controls, status bar
-└── JavaScript
-    ├── API Layer — Fetch, parse, and normalize data from both platforms
-    ├── Matching Engine — Keyword extraction + fuzzy scoring to pair markets
-    ├── Trading Engine — Paper trading simulator with auto-entry/exit logic
-    ├── Risk Engine — Exposure, drawdown, VaR, correlation tracking
-    ├── Chart Engine — Canvas-based equity curve and spread history
-    └── UI Renderer — Real-time DOM updates for all 9 panels
-```
+1. **Fetch** — Pull active BTC 15-min up/down markets from both platforms
+2. **Extract Time Windows** — Parse the 15-minute window start time from Polymarket slugs and Kalshi close times
+3. **Match by Timestamp** — Pair markets that cover the same 15-minute window (within 2-minute tolerance)
+4. **Calculate Spread** — Compare "Up" prices between matched pairs
+5. **Apply Costs** — Subtract slippage, platform fees, and market impact
+6. **Execute** — If net spread is positive and exceeds threshold, enter the arb
+7. **Resolve** — Hold until the 15-minute window ends, collect guaranteed profit
 
 ---
 
-## How Arbitrage Detection Works
+## Real-World Cost Model
 
-1. **Fetch** — Pull active/open markets from both Polymarket and Kalshi APIs
-2. **Normalize** — Extract market titles, YES prices, and volume from each platform's response format
-3. **Match** — For each Polymarket market, find the Kalshi market with the highest keyword overlap score (threshold: 25%+)
-4. **Calculate** — Compute the spread between matched pairs' YES prices
-5. **Rank** — Sort by spread descending; matched pairs appear first
-6. **Execute** — If bot is active and spread exceeds threshold, open a simulated position
-7. **Monitor** — Close positions when spread collapses, reverses, or times out
+| Cost | Amount | Notes |
+|------|--------|-------|
+| Polymarket taker fee | 2% | On winnings |
+| Polymarket gas | ~$0.50 | Per trade (Polygon network) |
+| Kalshi contract fee | 1¢/contract | Per contract |
+| Kalshi profit fee | 7% | On profit |
+| Bid-ask slippage | ~0.5% | Crossing the spread |
+| Market impact | ~0.2% | Scales with order size |
+| Partial fills | 75-95% | Real order book depth limits |
 
 ---
 
 ## Limitations
 
-- **CORS** — Browser security may block direct API calls. The dashboard automatically falls back to a CORS proxy (`corsproxy.io`). For best results, run a local server.
+- **CORS** — Browser security may block direct API calls. Falls back to CORS proxies automatically.
 - **Rate Limits** — Both APIs have rate limits. The configurable refresh rate helps stay within bounds.
-- **Market Matching** — Keyword-based matching is heuristic. Some pairs may be false positives or missed entirely. Always verify matches visually.
-- **Simulated Only** — No real orders are placed. Simulated fills assume perfect execution which may not reflect real market conditions (slippage, fees, liquidity).
-- **Static Prices Between Refreshes** — Prices update on each API poll, not in real-time via WebSocket.
-
----
-
-## Roadmap
-
-- [ ] WebSocket integration for real-time Polymarket price streaming
-- [ ] Kalshi WebSocket support (`wss://api.kalshi.com/trade-api/ws/v2`)
-- [ ] Improved market matching using event-level grouping
-- [ ] Historical spread tracking and backtesting
-- [ ] Configurable alerts (email, webhook, sound)
-- [ ] Multi-leg arbitrage calculator
-- [ ] Export trade history as CSV
-- [ ] Optional real trading mode with API key authentication
-
----
-
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+- **Market Availability** — BTC 15-min markets roll every 15 minutes. Some windows may not have active markets on both platforms simultaneously.
+- **Simulated Only** — No real orders are placed. Real execution may differ from simulation.
+- **Resolution Source Difference** — Polymarket uses Chainlink BTC/USD; Kalshi uses CF Benchmarks RTI. Slight price feed differences could affect resolution.
 
 ---
 
 ## License
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
