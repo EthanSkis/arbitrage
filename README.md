@@ -37,7 +37,7 @@
   - **Scalp** — Quick in-and-out on temporary spread spikes
 - **Risk Modes:** Conservative (0.5x), Moderate (1x), Aggressive (1.5x) position sizing
 
-### Dashboard Panels (3x3 Grid — No Scrolling)
+### Dashboard Panels
 
 | Panel | Description |
 |-------|-------------|
