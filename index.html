@@ -249,9 +249,9 @@
     <div class="panel-title">Performance</div>
     <div class="pnl-grid">
       <div class="pnl-card"><div class="label">Realized</div><div class="val positive" id="pnl-realized">$0.00</div><div class="sub" id="pnl-realized-pct">+0.00%</div></div>
-      <div class="pnl-card"><div class="label">Unrealized</div><div class="val" id="pnl-unrealized">$0.00</div><div class="sub" id="pnl-positions">0 pos</div></div>
+      <div class="pnl-card"><div class="label">Locked Profit</div><div class="val" id="pnl-unrealized">$0.00</div><div class="sub" id="pnl-positions">0 pos pending</div></div>
       <div class="pnl-card"><div class="label">Trades</div><div class="val" id="pnl-total-trades">0</div><div class="sub" id="pnl-win-loss">W:0 / L:0</div></div>
-      <div class="pnl-card"><div class="label">Avg P/T</div><div class="val" id="pnl-avg">$0.00</div><div class="sub" id="pnl-sharpe">Sharpe: --</div></div>
+      <div class="pnl-card"><div class="label">Net (after fees)</div><div class="val" id="pnl-avg">$0.00</div><div class="sub" id="pnl-sharpe">Sharpe: --</div></div>
     </div>
     <canvas id="equity-chart" style="flex:1;min-height:0"></canvas>
   </div>
@@ -260,7 +260,7 @@
     <div class="panel-title">Open Positions <span class="badge badge-live" id="pos-count">0</span></div>
     <div class="panel-body">
       <table class="pos-table">
-        <thead><tr><th>Market</th><th>Plat</th><th>Entry</th><th>Now</th><th>$</th><th>P&L</th></tr></thead>
+        <thead><tr><th>Market</th><th>Plat</th><th>Entry</th><th>$</th><th>Resolves</th><th>Locked $</th><th>Ann%</th></tr></thead>
         <tbody id="pos-body"></tbody>
       </table>
     </div>
@@ -286,12 +286,12 @@
     <div class="panel-title">Risk Management</div>
     <div class="panel-body">
       <div class="risk-grid">
-        <div class="risk-item"><div class="label">Exposure</div><div class="val" id="risk-exposure">$0</div><div class="risk-meter"><div class="fill" id="risk-exp-fill" style="width:0%;background:var(--green)"></div></div></div>
+        <div class="risk-item"><div class="label">Capital Locked</div><div class="val" id="risk-exposure">$0</div><div class="risk-meter"><div class="fill" id="risk-exp-fill" style="width:0%;background:var(--green)"></div></div></div>
         <div class="risk-item"><div class="label">Max DD</div><div class="val" id="risk-dd">0%</div><div class="risk-meter"><div class="fill" id="risk-dd-fill" style="width:0%;background:var(--green)"></div></div></div>
-        <div class="risk-item"><div class="label">VaR 95%</div><div class="val" id="risk-var">$0</div><div class="risk-meter"><div class="fill" id="risk-var-fill" style="width:0%;background:var(--green)"></div></div></div>
-        <div class="risk-item"><div class="label">Corr Risk</div><div class="val" id="risk-corr">Low</div><div class="risk-meter"><div class="fill" id="risk-corr-fill" style="width:15%;background:var(--green)"></div></div></div>
-        <div class="risk-item"><div class="label">Margin</div><div class="val" id="risk-margin">0%</div><div class="risk-meter"><div class="fill" id="risk-margin-fill" style="width:0%;background:var(--green)"></div></div></div>
-        <div class="risk-item"><div class="label">Hedge</div><div class="val" id="risk-hedge">1.00</div><div class="risk-meter"><div class="fill" id="risk-hedge-fill" style="width:100%;background:var(--green)"></div></div></div>
+        <div class="risk-item"><div class="label">Fees Paid</div><div class="val" id="risk-var">$0</div><div class="risk-meter"><div class="fill" id="risk-var-fill" style="width:0%;background:var(--green)"></div></div></div>
+        <div class="risk-item"><div class="label">Slippage Cost</div><div class="val" id="risk-corr">$0</div><div class="risk-meter"><div class="fill" id="risk-corr-fill" style="width:0%;background:var(--green)"></div></div></div>
+        <div class="risk-item"><div class="label">Avg Hold</div><div class="val" id="risk-margin">--</div><div class="risk-meter"><div class="fill" id="risk-margin-fill" style="width:0%;background:var(--green)"></div></div></div>
+        <div class="risk-item"><div class="label">Ann. ROI</div><div class="val" id="risk-hedge">--</div><div class="risk-meter"><div class="fill" id="risk-hedge-fill" style="width:0%;background:var(--green)"></div></div></div>
       </div>
     </div>
   </div>
@@ -336,6 +336,25 @@ const RAW = {
   kalshiBook: (ticker) => `https://api.elections.kalshi.com/trade-api/v2/markets/${ticker}/orderbook`,
 };
 
+// --- Real-World Cost Constants ---
+const FEES = {
+  polyTakerFee: 0.02,      // Polymarket: ~2% on winnings
+  kalshiFee: 0.07,          // Kalshi: 7% on profit (capped at contract fee)
+  kalshiContractFee: 0.01,  // Kalshi: 1¢ per contract
+  polyGasFee: 0.50,         // Estimated gas/settlement cost per trade on Poly
+  slippageBps: 50,          // 0.5% avg slippage from bid-ask crossing
+  marketImpactBps: 20,      // 0.2% price impact for $500 order
+  partialFillRate: 0.85,    // 85% average fill rate on limit orders
+};
+
+// Simulated resolution: each tick = ~1 hour, markets resolve in 3-30 days
+const SIM_TIME = {
+  ticksPerHour: 1,
+  hoursPerDay: 24,
+  minResolveDays: 3,
+  maxResolveDays: 45,
+};
+
 // --- State ---
 let state = {
   balance:10000, startBalance:10000, realizedPnl:0, unrealizedPnl:0,
@@ -344,6 +363,14 @@ let state = {
   minSpread:2, maxPos:500, riskMode:'moderate', strategy:'cross',
   events:[], maxEquity:10000, maxDrawdown:0, selectedMarket:0,
   refreshRate:15, lastFetchTime:null, nextRefreshIn:15,
+  // Realistic tracking
+  totalFeesPaid:0,          // Cumulative fees (platform + gas + slippage)
+  totalSlippage:0,          // Cumulative slippage cost
+  capitalLocked:0,          // Capital currently locked in positions
+  avgHoldHours:0,           // Average hold time across closed positions
+  closedHoldTimes:[],       // Array of hold durations for closed trades
+  simDay:0,                 // Current simulated day
+  simHour:0,                // Current simulated hour
 };
 
 // Raw API data
@@ -771,7 +798,43 @@ function renderSyntheticOB(mid, prefix) {
   midEl.textContent=fmt(mid)+'¢';
 }
 
-// --- Simulated Trading Engine (paper trading on real prices) ---
+// --- Simulated Trading Engine (realistic paper trading on real prices) ---
+
+// Calculate slippage: you cross the bid-ask spread + market impact for order size
+function calcSlippage(price, orderSize) {
+  const spreadSlip = price * (FEES.slippageBps / 10000);
+  const impactSlip = price * (FEES.marketImpactBps / 10000) * (orderSize / 500); // scales with size
+  return spreadSlip + impactSlip;
+}
+
+// Calculate all-in fees for a round-trip arb trade
+function calcTradeFees(buyPlatform, contracts, buyPrice, sellPrice) {
+  let fees = 0;
+  // Platform fees (charged on profit, but we model worst-case on settlement)
+  if (buyPlatform === 'Polymarket') {
+    fees += contracts * (buyPrice / 100) * FEES.polyTakerFee; // ~2% on buy side
+    fees += FEES.polyGasFee; // gas cost
+    fees += contracts * FEES.kalshiContractFee; // Kalshi per-contract fee on sell side
+  } else {
+    fees += contracts * FEES.kalshiContractFee; // Kalshi per-contract on buy
+    fees += contracts * (sellPrice / 100) * FEES.polyTakerFee; // Poly fee on sell
+    fees += FEES.polyGasFee;
+  }
+  return fees;
+}
+
+// Simulate partial fill — real order books don't always fill fully
+function simulateFill(contracts) {
+  const fillPct = FEES.partialFillRate + rand(-0.10, 0.10); // 75-95% fill
+  return Math.max(1, Math.floor(contracts * clamp(fillPct, 0.5, 1.0)));
+}
+
+// Assign a simulated resolution time to each position (in ticks = hours)
+function assignResolutionTime() {
+  const days = rand(SIM_TIME.minResolveDays, SIM_TIME.maxResolveDays);
+  return Math.floor(days * SIM_TIME.hoursPerDay * SIM_TIME.ticksPerHour);
+}
+
 function tryExecuteArbs() {
   if (!state.botActive) return;
   const riskMult = state.riskMode==='conservative'?0.5:state.riskMode==='aggressive'?1.5:1;
@@ -782,50 +845,152 @@ function tryExecuteArbs() {
     if (m.spread < state.minSpread || state.positions.length >= 8) return;
     if (state.positions.find(p => p.marketId===m.id) || state.balance < posSize) return;
 
-    let buyPlat, sellPlat, buyPrice;
-    if (m.direction.includes('Buy Poly')) { buyPlat='Polymarket'; sellPlat='Kalshi'; buyPrice=m.polyYes; }
-    else if (m.direction.includes('Buy Kalshi')) { buyPlat='Kalshi'; sellPlat='Polymarket'; buyPrice=m.kalshiYes; }
-    else return;
+    let buyPlat, sellPlat, buyPrice, sellPrice;
+    if (m.direction.includes('Buy Poly')) {
+      buyPlat='Polymarket'; sellPlat='Kalshi';
+      buyPrice=m.polyYes; sellPrice=m.kalshiYes;
+    } else if (m.direction.includes('Buy Kalshi')) {
+      buyPlat='Kalshi'; sellPlat='Polymarket';
+      buyPrice=m.kalshiYes; sellPrice=m.polyYes;
+    } else return;
 
-    const contracts = Math.floor(posSize/(buyPrice/100));
-    if (contracts <= 0) return;
-    const cost = contracts*buyPrice/100;
-    state.balance -= cost;
+    // Apply bid-ask slippage: you pay MORE on buy, receive LESS on sell
+    const buySlip = calcSlippage(buyPrice, posSize);
+    const sellSlip = calcSlippage(sellPrice, posSize);
+    const adjBuyPrice = buyPrice + buySlip;   // worse fill on buy
+    const adjSellPrice = sellPrice - sellSlip; // worse fill on sell
+    const realSpread = adjSellPrice - adjBuyPrice;
+
+    // After slippage, is there still an arb?
+    if (realSpread <= 0) {
+      addEvent('warning', `Skipped ${m.name.slice(0,35)}: spread vanishes after slippage`);
+      return;
+    }
+
+    // Simulate partial fill
+    const idealContracts = Math.floor(posSize / (adjBuyPrice / 100));
+    if (idealContracts <= 0) return;
+    const contracts = simulateFill(idealContracts);
+
+    // Calculate costs
+    const buyCost = contracts * adjBuyPrice / 100;
+    const fees = calcTradeFees(buyPlat, contracts, adjBuyPrice, adjSellPrice);
+    const totalCost = buyCost + fees;
+    const slippageCost = (buySlip + sellSlip) * contracts / 100;
+
+    if (state.balance < totalCost) return;
+    state.balance -= totalCost;
+    state.totalFeesPaid += fees;
+    state.totalSlippage += slippageCost;
+
+    // Determine resolution time
+    const resolveTicks = assignResolutionTime();
+    const resolveDays = resolveTicks / (SIM_TIME.hoursPerDay * SIM_TIME.ticksPerHour);
+
+    // Guaranteed arb profit = (sellPrice - buyPrice) * contracts (at resolution)
+    // Minus fees already paid. This is the locked-in profit IF held to resolution.
+    const grossProfit = realSpread * contracts / 100;
+    const netProfit = grossProfit - fees;
+    const annualizedROI = (netProfit / totalCost) * (365 / resolveDays) * 100;
 
     state.positions.push({
       id:Date.now()+Math.random(), marketId:m.id, marketName:m.name,
-      buyPlatform:buyPlat, sellPlatform:sellPlat, buyPrice,
-      entrySpread:m.spread, contracts, cost, entryTick:state.tick, side:'LONG',
+      buyPlatform:buyPlat, sellPlatform:sellPlat,
+      buyPrice: adjBuyPrice, sellPrice: adjSellPrice,
+      rawBuyPrice: buyPrice, rawSellPrice: sellPrice,
+      entrySpread: realSpread, contracts, cost: totalCost,
+      buyCost, fees, slippageCost,
+      entryTick:state.tick, side:'LONG',
+      resolveTick: state.tick + resolveTicks,  // when market resolves
+      resolveDays: resolveDays,
+      lockedProfit: netProfit,                  // guaranteed if held to resolution
+      annualizedROI: annualizedROI,
+      exitReason: null,
     });
-    addTrade('BUY',m.name.slice(0,40),buyPlat,buyPrice,cost,0);
-    addEvent('success',`Opened: ${m.name.slice(0,50)} | ${fmt(m.spread)}% spread`);
+
+    const fillPct = Math.round(contracts / idealContracts * 100);
+    addTrade('BUY', m.name.slice(0,40), buyPlat, adjBuyPrice, totalCost, 0);
+    addEvent('success',
+      `Opened: ${m.name.slice(0,35)} | ${fmt(realSpread)}¢ spread | ${fillPct}% filled | resolves ~${Math.round(resolveDays)}d | fees $${fmt(fees)}`
+    );
   });
 }
 
 function managePositions() {
   const toClose = [];
-  state.positions.forEach((pos,i) => {
-    const m = matchedMarkets.find(mm=>mm.id===pos.marketId);
-    if(!m) return;
-
+  state.positions.forEach((pos, i) => {
+    const m = matchedMarkets.find(mm => mm.id === pos.marketId);
     const holdTicks = state.tick - pos.entryTick;
-    const spreadCollapsed = m.spread < 0.5;
-    const spreadReversed = m.spread > pos.entrySpread * 2.5;
-    const tooLong = holdTicks > 30;
+    const holdDays = holdTicks / (SIM_TIME.hoursPerDay * SIM_TIME.ticksPerHour);
 
-    if (spreadCollapsed || spreadReversed || tooLong || Math.random()<0.03) {
-      const exitPrice = pos.buyPlatform==='Polymarket'?m.polyYes:m.kalshiYes;
-      const exitValue = pos.contracts*exitPrice/100;
-      const pnl = (exitValue - pos.cost + pos.entrySpread*pos.contracts/200)*rand(0.4,1.2);
-      state.balance += pos.cost + pnl;
+    // --- Primary mode: HOLD TO RESOLUTION ---
+    // Market resolves — collect guaranteed arb profit
+    if (state.tick >= pos.resolveTick) {
+      // At resolution, one side pays $1, other side pays $0
+      // Your locked arb profit = spread at entry (already net of slippage)
+      // We already deducted fees at entry, so payout = buyCost + netProfit
+      const pnl = pos.lockedProfit;
+      state.balance += pos.buyCost + pnl + pos.fees; // return cost basis + profit (fees were deducted at entry)
       state.realizedPnl += pnl;
-      if(pnl>=0) state.wins++; else state.losses++;
-      addTrade('SELL',pos.marketName.slice(0,40),pos.sellPlatform,exitPrice,exitValue,pnl);
-      addEvent(pnl>=0?'success':'warning',`Closed: ${pos.marketName.slice(0,40)} ${fmtUsd(pnl)}`);
+      if (pnl >= 0) state.wins++; else state.losses++;
+      state.closedHoldTimes.push(holdDays);
+      pos.exitReason = 'RESOLVED';
+      addTrade('SETTLE', pos.marketName.slice(0,40), 'Both', 100, pos.buyCost + pnl, pnl);
+      addEvent(pnl >= 0 ? 'success' : 'warning',
+        `Resolved: ${pos.marketName.slice(0,35)} | ${fmtUsd(pnl)} after ${Math.round(holdDays)}d | ROI ${fmt(pos.annualizedROI)}% ann.`
+      );
+      toClose.push(i);
+      return;
+    }
+
+    // --- Secondary: Early exit conditions (optional, less common) ---
+    if (!m) return;
+
+    // Spread collapsed — convergence happened early, can exit both legs profitably
+    const spreadCollapsed = m.spread < 0.3;
+    // Spread inverted badly — one platform shifted, potential loss if market moves further
+    const spreadReversed = m.spread > pos.entrySpread * 3;
+
+    // Early exit on convergence (spread scalp within the arb)
+    if (spreadCollapsed && state.strategy === 'scalp') {
+      const exitSlip = calcSlippage(pos.buyPrice, pos.buyCost) * 2; // both legs
+      const earlyProfit = pos.entrySpread * pos.contracts / 100 * 0.6 - exitSlip * pos.contracts / 100;
+      // Deduct early exit fees (trading out of both legs)
+      const exitFees = calcTradeFees(pos.buyPlatform, pos.contracts, pos.buyPrice, pos.sellPrice) * 0.5;
+      const netEarly = earlyProfit - exitFees;
+      state.totalFeesPaid += exitFees;
+      state.balance += pos.buyCost + netEarly + pos.fees;
+      state.realizedPnl += netEarly;
+      if (netEarly >= 0) state.wins++; else state.losses++;
+      state.closedHoldTimes.push(holdDays);
+      pos.exitReason = 'CONVERGED';
+      addTrade('SELL', pos.marketName.slice(0,40), pos.sellPlatform, pos.buyPrice, pos.buyCost + netEarly, netEarly);
+      addEvent(netEarly >= 0 ? 'success' : 'warning',
+        `Early exit (converged): ${pos.marketName.slice(0,30)} | ${fmtUsd(netEarly)} in ${Math.round(holdDays)}d`
+      );
+      toClose.push(i);
+      return;
+    }
+
+    // Stop loss: spread reversed badly — cut losses on scalp mode
+    if (spreadReversed && state.strategy === 'scalp' && holdTicks > 48) {
+      const lossAmt = -(pos.entrySpread * pos.contracts / 100 * rand(0.3, 0.8));
+      const exitFees = calcTradeFees(pos.buyPlatform, pos.contracts, pos.buyPrice, pos.sellPrice) * 0.5;
+      state.totalFeesPaid += exitFees;
+      const netLoss = lossAmt - exitFees;
+      state.balance += pos.buyCost + netLoss + pos.fees;
+      state.realizedPnl += netLoss;
+      state.losses++;
+      state.closedHoldTimes.push(holdDays);
+      pos.exitReason = 'STOP_LOSS';
+      addTrade('SELL', pos.marketName.slice(0,40), pos.sellPlatform, pos.buyPrice, pos.buyCost + netLoss, netLoss);
+      addEvent('error',
+        `Stop loss: ${pos.marketName.slice(0,30)} | ${fmtUsd(netLoss)} | spread reversed to ${fmt(m.spread)}%`
+      );
       toClose.push(i);
     }
   });
-  toClose.sort((a,b)=>b-a).forEach(i=>state.positions.splice(i,1));
+  toClose.sort((a, b) => b - a).forEach(i => state.positions.splice(i, 1));
 }
 
 function addTrade(side,market,platform,price,size,pnl) {
@@ -936,21 +1101,27 @@ window.selectMarket = function(i) {
 function renderPositions() {
   const body=document.getElementById('pos-body');
   document.getElementById('pos-count').textContent=state.positions.length;
-  let html='',totalU=0;
+  let html='',totalU=0,totalLocked=0;
   state.positions.forEach(pos=>{
-    const m=matchedMarkets.find(mm=>mm.id===pos.marketId);
-    const cur=m?(pos.buyPlatform==='Polymarket'?m.polyYes:m.kalshiYes):pos.buyPrice;
-    const u=(cur-pos.buyPrice)*pos.contracts/100; totalU+=u;
+    const ticksLeft = pos.resolveTick - state.tick;
+    const daysLeft = Math.max(0, ticksLeft / (SIM_TIME.hoursPerDay * SIM_TIME.ticksPerHour));
+    const pctDone = clamp((state.tick - pos.entryTick) / (pos.resolveTick - pos.entryTick) * 100, 0, 100);
+    totalU += pos.lockedProfit; // unrealized = locked profit (guaranteed at resolution)
+    totalLocked += pos.cost;
+    const roiColor = pos.annualizedROI > 20 ? 'var(--green)' : pos.annualizedROI > 5 ? 'var(--yellow)' : 'var(--red)';
     html+=`<tr>
-      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis">${pos.marketName.slice(0,25)}</td>
+      <td style="max-width:100px;overflow:hidden;text-overflow:ellipsis">${pos.marketName.slice(0,22)}</td>
       <td style="color:${pos.buyPlatform==='Polymarket'?'var(--poly)':'var(--kalshi)'}">${pos.buyPlatform.slice(0,4)}</td>
-      <td>${fmt(pos.buyPrice)}¢</td><td>${fmt(cur)}¢</td>
+      <td>${fmt(pos.buyPrice)}¢</td>
       <td>${fmtUsdAbs(pos.cost)}</td>
-      <td style="color:${u>=0?'var(--green)':'var(--red)'};font-weight:600">${fmtUsd(u)}</td>
+      <td><span style="font-size:9px">${Math.round(daysLeft)}d</span> <div style="height:2px;background:var(--surface3);border-radius:1px;margin-top:1px"><div style="height:100%;width:${pctDone}%;background:var(--green);border-radius:1px"></div></div></td>
+      <td style="color:var(--green);font-weight:600">${fmtUsd(pos.lockedProfit)}</td>
+      <td style="color:${roiColor};font-weight:600">${fmt(pos.annualizedROI,0)}%</td>
     </tr>`;
   });
-  body.innerHTML=html||'<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:12px">No open positions</td></tr>';
+  body.innerHTML=html||'<tr><td colspan="7" style="text-align:center;color:var(--text3);padding:12px">No open positions</td></tr>';
   state.unrealizedPnl=totalU;
+  state.capitalLocked=totalLocked;
 }
 
 function renderTradeLog() {
@@ -959,11 +1130,11 @@ function renderTradeLog() {
   state.trades.slice(0,30).forEach(t=>{
     html+=`<div class="trade-entry">
       <span class="time">${t.time}</span>
-      <span class="side-${t.side.toLowerCase()}">${t.side}</span>
+      <span class="side-${t.side==='SETTLE'?'sell':t.side.toLowerCase()}">${t.side}</span>
       <span style="overflow:hidden;text-overflow:ellipsis">${t.market}</span>
       <span style="color:${t.platform==='Polymarket'?'var(--poly)':'var(--kalshi)'}">${t.platform.slice(0,4)}</span>
       <span>${t.price}¢</span><span>${t.size}</span>
-      <span class="profit ${parseFloat(t.pnl)>=0?'positive':'negative'}">${t.side==='SELL'?fmtUsd(parseFloat(t.pnl)):''}</span>
+      <span class="profit ${parseFloat(t.pnl)>=0?'positive':'negative'}">${(t.side==='SELL'||t.side==='SETTLE')?fmtUsd(parseFloat(t.pnl)):''}</span>
     </div>`;
   });
   document.getElementById('trade-log-body').innerHTML=html;
@@ -982,24 +1153,39 @@ function renderRisk() {
   if(equity>state.maxEquity)state.maxEquity=equity;
   const dd=(state.maxEquity-equity)/state.maxEquity*100;
   if(dd>state.maxDrawdown)state.maxDrawdown=dd;
-  const varVal=exposure*0.05;
-  const marginPct=state.balance>0?exposure/state.balance*100:0;
 
+  // Capital locked
   document.getElementById('risk-exposure').textContent=fmtUsdAbs(exposure);
+
+  // Max drawdown
   document.getElementById('risk-dd').textContent=fmt(state.maxDrawdown)+'%';
-  document.getElementById('risk-var').textContent=fmtUsdAbs(varVal);
-  document.getElementById('risk-margin').textContent=fmt(marginPct)+'%';
 
+  // Fees paid
+  document.getElementById('risk-var').textContent=fmtUsdAbs(state.totalFeesPaid);
+
+  // Slippage cost
+  document.getElementById('risk-corr').textContent=fmtUsdAbs(state.totalSlippage);
+
+  // Average hold time
+  const avgHold = state.closedHoldTimes.length > 0
+    ? state.closedHoldTimes.reduce((s,v)=>s+v,0) / state.closedHoldTimes.length : 0;
+  document.getElementById('risk-margin').textContent = avgHold > 0 ? fmt(avgHold,1)+'d' : '--';
+
+  // Annualized ROI across all positions
+  const allROIs = state.positions.map(p => p.annualizedROI);
+  const avgROI = allROIs.length > 0 ? allROIs.reduce((s,v)=>s+v,0) / allROIs.length : 0;
+  const roiEl = document.getElementById('risk-hedge');
+  roiEl.textContent = allROIs.length > 0 ? fmt(avgROI,1)+'%' : '--';
+  roiEl.style.color = avgROI > 15 ? 'var(--green)' : avgROI > 0 ? 'var(--yellow)' : 'var(--red)';
+
+  // Meter fills
   const setM=(id,pct,th=[30,60])=>{const el=document.getElementById(id);el.style.width=Math.min(pct,100)+'%';el.style.background=pct<th[0]?'var(--green)':pct<th[1]?'var(--yellow)':'var(--red)'};
-  setM('risk-exp-fill',expPct);setM('risk-dd-fill',state.maxDrawdown,[5,15]);
-  setM('risk-var-fill',varVal/state.startBalance*100);setM('risk-margin-fill',marginPct);
-
-  const cats=new Set(state.positions.map(p=>{const m=matchedMarkets.find(mm=>mm.id===p.marketId);return m?m.source:''}));
-  const cl=cats.size<=1?'Low':cats.size<=3?'Medium':'High';
-  document.getElementById('risk-corr').textContent=cl;setM('risk-corr-fill',cats.size*20);
-  const hr=state.positions.length>0?clamp(1-(dd/20),0.5,1.2):1.0;
-  document.getElementById('risk-hedge').textContent=fmt(hr);
-  document.getElementById('risk-hedge-fill').style.width=(hr/1.5*100)+'%';
+  setM('risk-exp-fill',expPct);
+  setM('risk-dd-fill',state.maxDrawdown,[5,15]);
+  setM('risk-var-fill',state.totalFeesPaid/state.startBalance*100,[2,5]);
+  setM('risk-corr-fill',state.totalSlippage/state.startBalance*100,[1,3]);
+  setM('risk-margin-fill',avgHold > 0 ? avgHold/30*100 : 0,[50,80]);
+  setM('risk-hedge-fill',avgROI > 0 ? clamp(avgROI/50*100,0,100) : 0,[20,40]);
 }
 
 function renderHeader() {
@@ -1016,12 +1202,12 @@ function renderHeader() {
   document.getElementById('pnl-realized-pct').textContent=(state.realizedPnl>=0?'+':'')+fmt(state.realizedPnl/state.startBalance*100)+'%';
   document.getElementById('pnl-unrealized').textContent=fmtUsd(state.unrealizedPnl);
   document.getElementById('pnl-unrealized').className='val '+(state.unrealizedPnl>=0?'positive':'negative');
-  document.getElementById('pnl-positions').textContent=state.positions.length+' pos';
+  document.getElementById('pnl-positions').textContent=state.positions.length+' pos pending';
   document.getElementById('pnl-total-trades').textContent=tot;
   document.getElementById('pnl-win-loss').textContent=`W:${state.wins} / L:${state.losses}`;
-  const avg=tot>0?state.realizedPnl/tot:0;
-  document.getElementById('pnl-avg').textContent=fmtUsd(avg);
-  document.getElementById('pnl-avg').className='val '+(avg>=0?'positive':'negative');
+  const netPnl = state.realizedPnl; // fees already deducted in trade logic
+  document.getElementById('pnl-avg').textContent=fmtUsd(netPnl);
+  document.getElementById('pnl-avg').className='val '+(netPnl>=0?'positive':'negative');
   const returns=[];
   for(let i=1;i<state.equityCurve.length;i++)returns.push((state.equityCurve[i]-state.equityCurve[i-1])/state.equityCurve[i-1]);
   if(returns.length>10){const mean=returns.reduce((s,v)=>s+v,0)/returns.length;const std=Math.sqrt(returns.reduce((s,v)=>s+(v-mean)**2,0)/returns.length);document.getElementById('pnl-sharpe').textContent=`Sharpe: ${std>0?fmt((mean/std)*Math.sqrt(252)):'--'}`;}
@@ -1034,7 +1220,7 @@ function renderAll() {
 }
 
 function renderStatusBar() {
-  document.getElementById('tick-count').textContent=state.tick;
+  document.getElementById('tick-count').textContent=`Day ${state.simDay}, Hr ${state.simHour}`;
   document.getElementById('next-refresh').textContent=state.nextRefreshIn+'s';
 }
 
@@ -1044,6 +1230,13 @@ let tickInterval;
 function tick() {
   state.tick++;
   state.nextRefreshIn--;
+
+  // Track simulated time (each tick = 1 hour)
+  state.simHour++;
+  if (state.simHour >= SIM_TIME.hoursPerDay) {
+    state.simHour = 0;
+    state.simDay++;
+  }
 
   // Auto-refresh market data
   if (state.nextRefreshIn <= 0) {
@@ -1078,6 +1271,8 @@ function resetSim() {
   state.balance=10000;state.startBalance=10000;state.realizedPnl=0;state.unrealizedPnl=0;
   state.positions=[];state.trades=[];state.equityCurve=[10000];state.spreadHistory=[];
   state.wins=0;state.losses=0;state.tick=0;state.maxEquity=10000;state.maxDrawdown=0;
+  state.totalFeesPaid=0;state.totalSlippage=0;state.capitalLocked=0;
+  state.avgHoldHours=0;state.closedHoldTimes=[];state.simDay=0;state.simHour=0;
   state.events=[{type:'info',msg:'Simulation reset. Positions cleared.',time:timeNow()}];
   renderAll();
 }
