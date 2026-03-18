@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ArbEdge - Polymarket & Kalshi Arbitrage Dashboard</title>
+<title>ArbEdge - Live Polymarket & Kalshi Arbitrage Dashboard</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   :root{
@@ -20,7 +20,6 @@
   body{font-family:'SF Mono','Cascadia Code','Fira Code',monospace;background:var(--bg);color:var(--text);font-size:11px;display:flex;flex-direction:column}
   ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
-  /* Header */
   .header{background:var(--surface);border-bottom:1px solid var(--border);padding:6px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
   .logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700}
   .logo svg{width:22px;height:22px}
@@ -32,7 +31,6 @@
   .header-stat .value.positive{color:var(--green)}
   .header-stat .value.negative{color:var(--red)}
 
-  /* Controls Bar */
   .controls{background:var(--surface);border-bottom:1px solid var(--border);padding:5px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0}
   .control-group{display:flex;align-items:center;gap:5px}
   .control-group label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
@@ -40,6 +38,7 @@
   .btn:hover{border-color:var(--text3);background:var(--surface3)}
   .btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
   .btn.danger{background:var(--red2);border-color:var(--red);color:#fff}
+  .btn.success{background:var(--green2);border-color:var(--green);color:#fff}
   select,input[type=number]{padding:3px 6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);border-radius:var(--radius);font-size:10px;font-family:inherit}
   select:focus,input:focus{outline:none;border-color:var(--blue)}
   .toggle{position:relative;width:32px;height:18px;cursor:pointer}
@@ -52,15 +51,14 @@
   .pulse{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
-  /* Main Grid - fills remaining space */
   .main{flex:1;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:1px;background:var(--border);overflow:hidden;min-height:0}
   .panel{background:var(--surface);padding:8px;overflow:hidden;display:flex;flex-direction:column;min-height:0}
   .panel-title{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--text3);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
   .panel-title .badge{padding:1px 6px;border-radius:8px;font-size:9px;font-weight:600}
   .badge-live{background:var(--green-bg);color:var(--green)}
+  .badge-warn{background:rgba(245,158,11,.15);color:var(--yellow)}
+  .badge-off{background:rgba(239,68,68,.15);color:var(--red)}
   .panel-body{flex:1;overflow-y:auto;min-height:0}
-
-  /* Arb Table - spans 2 cols */
   .col-span-2{grid-column:span 2}
 
   .arb-table{width:100%;border-collapse:collapse}
@@ -76,14 +74,12 @@
 
   canvas{width:100%!important;display:block}
 
-  /* P&L Cards */
-  .pnl-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px;flex-shrink:0}
+  .pnl-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px;flex-shrink:0}
   .pnl-card{background:var(--surface2);border-radius:var(--radius);padding:6px 8px;border:1px solid var(--border)}
   .pnl-card .label{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px}
   .pnl-card .val{font-size:14px;font-weight:700}
   .pnl-card .sub{font-size:9px;color:var(--text3)}
 
-  /* Trade Log */
   .trade-entry{display:grid;grid-template-columns:60px 36px 1fr 52px 48px 48px 60px;gap:4px;padding:2px 4px;border-bottom:1px solid rgba(42,53,80,.2);font-size:10px;align-items:center}
   .trade-entry:hover{background:var(--surface2)}
   .trade-entry .time{color:var(--text3)}
@@ -93,7 +89,6 @@
   .trade-entry .profit.negative{color:var(--red)}
   .trade-header{font-weight:600;color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--border)}
 
-  /* Order Book */
   .ob-row{display:flex;align-items:center;padding:1px 4px;font-size:10px;position:relative}
   .ob-row .price{width:44px;text-align:right;font-weight:600;z-index:1}
   .ob-row .qty{width:40px;text-align:right;z-index:1;color:var(--text2)}
@@ -107,7 +102,6 @@
   .ob-header span:nth-child(2){width:40px;text-align:right}
   .ob-header span:nth-child(3){width:50px;text-align:right}
 
-  /* Risk Panel */
   .risk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
   .risk-item{background:var(--surface2);border-radius:var(--radius);padding:6px 8px;border:1px solid var(--border)}
   .risk-item .label{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.3px}
@@ -115,12 +109,10 @@
   .risk-meter{height:3px;background:var(--surface3);border-radius:2px;margin-top:4px;overflow:hidden}
   .risk-meter .fill{height:100%;border-radius:2px;transition:width .3s}
 
-  /* Position Panel */
   .pos-table{width:100%;border-collapse:collapse}
   .pos-table th{text-align:left;padding:3px 5px;font-size:9px;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)}
   .pos-table td{padding:3px 5px;font-size:10px;border-bottom:1px solid rgba(42,53,80,.3)}
 
-  /* Event Feed */
   .event-item{padding:3px 6px;border-left:2px solid var(--border);margin-bottom:2px;font-size:10px;background:var(--surface2);border-radius:0 var(--radius) var(--radius) 0}
   .event-item.info{border-left-color:var(--blue)}
   .event-item.success{border-left-color:var(--green)}
@@ -128,31 +120,43 @@
   .event-item.error{border-left-color:var(--red)}
   .event-item .etime{color:var(--text3);font-size:9px;margin-right:4px}
 
-  /* Status Bar */
   .status-bar{background:var(--surface);border-top:1px solid var(--border);padding:3px 16px;display:flex;align-items:center;gap:16px;font-size:10px;color:var(--text3);flex-shrink:0}
   .status-bar .indicator{display:flex;align-items:center;gap:4px}
   .status-dot{width:5px;height:5px;border-radius:50%}
   .status-dot.online{background:var(--green)}
+  .status-dot.offline{background:var(--red)}
+  .status-dot.loading{background:var(--yellow);animation:pulse 1s infinite}
+
+  /* Loading overlay */
+  .loading-overlay{position:absolute;inset:0;background:rgba(10,14,23,.85);display:flex;align-items:center;justify-content:center;z-index:50;flex-direction:column;gap:8px}
+  .loading-overlay .spinner{width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--green);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loading-overlay .msg{color:var(--text2);font-size:11px}
+  .tag{display:inline-block;padding:1px 5px;border-radius:4px;font-size:9px;font-weight:600}
+  .tag-poly{background:rgba(99,102,241,.2);color:var(--poly)}
+  .tag-kalshi{background:rgba(255,107,53,.2);color:var(--kalshi)}
+  .tag-live{background:var(--green-bg);color:var(--green)}
+  .tag-sim{background:rgba(245,158,11,.15);color:var(--yellow)}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="header">
   <div class="logo">
     <svg viewBox="0 0 28 28" fill="none"><path d="M14 2L26 8v12l-12 6L2 20V8l12-6z" stroke="var(--green)" stroke-width="2" fill="rgba(16,185,129,.15)"/><path d="M8 12l4 4 8-8" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     Arb<span class="edge">Edge</span>
+    <span class="tag tag-live" id="mode-tag">LIVE DATA</span>
+    <span class="tag tag-sim">SIM TRADING</span>
   </div>
   <div class="header-stats">
     <div class="header-stat"><div class="label">Total P&L</div><div class="value positive" id="hdr-pnl">+$0.00</div></div>
     <div class="header-stat"><div class="label">Win Rate</div><div class="value" id="hdr-winrate">0%</div></div>
-    <div class="header-stat"><div class="label">Active Arbs</div><div class="value" id="hdr-active">0</div></div>
+    <div class="header-stat"><div class="label">Active</div><div class="value" id="hdr-active">0</div></div>
     <div class="header-stat"><div class="label">Trades</div><div class="value" id="hdr-trades">0</div></div>
     <div class="header-stat"><div class="label">Balance</div><div class="value" id="hdr-balance">$10,000.00</div></div>
   </div>
 </div>
 
-<!-- CONTROLS -->
 <div class="controls">
   <div class="control-group">
     <label>Bot</label>
@@ -160,12 +164,12 @@
     <span class="pulse" id="bot-pulse"></span>
   </div>
   <div class="control-group">
-    <label>Speed</label>
-    <select id="sim-speed">
-      <option value="2000">Slow</option>
-      <option value="1000" selected>Normal</option>
-      <option value="500">Fast</option>
-      <option value="200">Turbo</option>
+    <label>Refresh</label>
+    <select id="refresh-rate">
+      <option value="30">30s</option>
+      <option value="15" selected>15s</option>
+      <option value="10">10s</option>
+      <option value="5">5s</option>
     </select>
   </div>
   <div class="control-group">
@@ -185,34 +189,33 @@
     </select>
   </div>
   <div class="spacer"></div>
+  <button class="btn" id="btn-refresh" title="Force refresh market data">Refresh Now</button>
   <button class="btn active" data-strat="cross">Cross-Mkt</button>
   <button class="btn" data-strat="hedged">Hedged</button>
   <button class="btn" data-strat="scalp">Scalp</button>
   <button class="btn danger" id="btn-reset">Reset</button>
 </div>
 
-<!-- MAIN 3x3 GRID -->
-<div class="main">
+<div class="main" style="position:relative">
 
-  <!-- ROW 1: Arb Table (2 cols) + Order Book -->
-  <div class="panel col-span-2">
+  <!-- ROW 1 -->
+  <div class="panel col-span-2" id="arb-panel" style="position:relative">
     <div class="panel-title">
-      Arbitrage Scanner
-      <span class="badge badge-live"><span class="pulse" style="margin-right:3px"></span> LIVE</span>
+      Arbitrage Scanner — Live Cross-Platform Markets
+      <div><span class="badge" id="data-badge">CONNECTING...</span></div>
     </div>
     <div class="panel-body">
       <table class="arb-table">
         <thead>
           <tr>
             <th>#</th>
-            <th>Market</th>
-            <th>Cat</th>
-            <th><span style="color:var(--poly)">Poly</span></th>
-            <th><span style="color:var(--kalshi)">Kalshi</span></th>
+            <th>Market / Event</th>
+            <th style="color:var(--poly)">Poly YES</th>
+            <th style="color:var(--kalshi)">Kalshi YES</th>
             <th>Spread</th>
             <th>Direction</th>
             <th>Est $</th>
-            <th>Vol</th>
+            <th>Vol 24h</th>
             <th>Status</th>
           </tr>
         </thead>
@@ -241,10 +244,10 @@
     </div>
   </div>
 
-  <!-- ROW 2: P&L + Equity | Positions + Risk | Spread Chart -->
+  <!-- ROW 2 -->
   <div class="panel">
     <div class="panel-title">Performance</div>
-    <div class="pnl-grid" style="grid-template-columns:1fr 1fr">
+    <div class="pnl-grid">
       <div class="pnl-card"><div class="label">Realized</div><div class="val positive" id="pnl-realized">$0.00</div><div class="sub" id="pnl-realized-pct">+0.00%</div></div>
       <div class="pnl-card"><div class="label">Unrealized</div><div class="val" id="pnl-unrealized">$0.00</div><div class="sub" id="pnl-positions">0 pos</div></div>
       <div class="pnl-card"><div class="label">Trades</div><div class="val" id="pnl-total-trades">0</div><div class="sub" id="pnl-win-loss">W:0 / L:0</div></div>
@@ -268,7 +271,7 @@
     <canvas id="spread-chart" style="flex:1;min-height:0"></canvas>
   </div>
 
-  <!-- ROW 3: Trade Log | Risk | Events -->
+  <!-- ROW 3 -->
   <div class="panel">
     <div class="panel-title">Trade Log <span style="color:var(--text3);font-size:9px;text-transform:none" id="log-count">0</span></div>
     <div class="panel-body">
@@ -300,156 +303,482 @@
 
 </div>
 
-<!-- STATUS BAR -->
 <div class="status-bar">
-  <div class="indicator"><span class="status-dot online"></span> Polymarket</div>
-  <div class="indicator"><span class="status-dot online"></span> Kalshi</div>
-  <div class="indicator">Ping: <span id="latency">12ms</span></div>
+  <div class="indicator"><span class="status-dot loading" id="poly-dot"></span> Poly: <span id="poly-status">connecting</span></div>
+  <div class="indicator"><span class="status-dot loading" id="kalshi-dot"></span> Kalshi: <span id="kalshi-status">connecting</span></div>
+  <div class="indicator">Markets: <span id="market-count">0</span> matched</div>
+  <div class="indicator">Last fetch: <span id="last-fetch">--</span></div>
   <div class="spacer"></div>
-  <div class="indicator">Clock: <span id="sim-clock">00:00:00</span></div>
+  <div class="indicator">Next refresh: <span id="next-refresh">--</span></div>
   <div class="indicator">Tick: <span id="tick-count">0</span></div>
 </div>
 
 <script>
 // ============================================================================
-// ArbEdge - Complete Arbitrage Simulation Engine
+// ArbEdge v3.0 — Live Market Data + Simulated Trading Engine
 // ============================================================================
 
-const MARKETS = [
-  {id:'m1',name:'US Presidential Election 2028',category:'Politics',basePolyYes:52,baseKalshiYes:49,vol24h:2800000,liq:'High'},
-  {id:'m2',name:'Fed Rate Cut Before Jul 2026',category:'Econ',basePolyYes:67,baseKalshiYes:63,vol24h:1900000,liq:'High'},
-  {id:'m3',name:'BTC Above $150K Dec 2026',category:'Crypto',basePolyYes:34,baseKalshiYes:31,vol24h:3200000,liq:'High'},
-  {id:'m4',name:'TSLA Above $400 Q2 2026',category:'Stocks',basePolyYes:41,baseKalshiYes:44,vol24h:980000,liq:'Med'},
-  {id:'m5',name:'AI Passes Bar Exam Top 1%',category:'Tech',basePolyYes:78,baseKalshiYes:74,vol24h:450000,liq:'Med'},
-  {id:'m6',name:'US GDP Growth >3% Q1 2026',category:'Econ',basePolyYes:29,baseKalshiYes:26,vol24h:720000,liq:'Med'},
-  {id:'m7',name:'SpaceX Starship Orbit Jun 26',category:'Sci',basePolyYes:61,baseKalshiYes:58,vol24h:340000,liq:'Low'},
-  {id:'m8',name:'ETH ETF AUM >$50B 2026',category:'Crypto',basePolyYes:45,baseKalshiYes:42,vol24h:1500000,liq:'High'},
-  {id:'m9',name:'TikTok Ban Upheld US',category:'Politics',basePolyYes:38,baseKalshiYes:35,vol24h:890000,liq:'Med'},
-  {id:'m10',name:'Super Bowl LXI: Chiefs',category:'Sports',basePolyYes:18,baseKalshiYes:21,vol24h:2100000,liq:'High'},
-  {id:'m11',name:'S&P 500 Above 6500 EOY 26',category:'Stocks',basePolyYes:55,baseKalshiYes:52,vol24h:1400000,liq:'High'},
-  {id:'m12',name:'WHO New Pandemic by 2027',category:'Health',basePolyYes:12,baseKalshiYes:15,vol24h:280000,liq:'Low'},
-  {id:'m13',name:'Apple AR Glasses 2026',category:'Tech',basePolyYes:33,baseKalshiYes:29,vol24h:670000,liq:'Med'},
-  {id:'m14',name:'Oil >$100/bbl Q2 2026',category:'Commod',basePolyYes:22,baseKalshiYes:19,vol24h:810000,liq:'Med'},
-  {id:'m15',name:'Ukraine-Russia Ceasefire 26',category:'Politics',basePolyYes:25,baseKalshiYes:28,vol24h:560000,liq:'Low'},
-  {id:'m16',name:'NVDA Revenue >$50B Q1 26',category:'Stocks',basePolyYes:72,baseKalshiYes:69,vol24h:1100000,liq:'High'},
-  {id:'m17',name:'Global Temp Record 2026',category:'Climate',basePolyYes:65,baseKalshiYes:62,vol24h:190000,liq:'Low'},
-  {id:'m18',name:'US Unemployment >5% 2026',category:'Econ',basePolyYes:15,baseKalshiYes:18,vol24h:430000,liq:'Med'},
-];
+// --- API Config ---
+const API = {
+  // Polymarket Gamma API (public, no auth needed for market data)
+  polyMarkets: 'https://gamma-api.polymarket.com/markets?limit=100&active=true&closed=false&order=volume24hr&ascending=false',
+  polyBook: (tokenId) => `https://clob.polymarket.com/book?token_id=${tokenId}`,
+  polyPrice: (tokenId) => `https://clob.polymarket.com/price?token_id=${tokenId}&side=BUY`,
+  // Kalshi API (public for market data)
+  kalshiMarkets: 'https://api.elections.kalshi.com/trade-api/v2/markets?limit=200&status=open',
+  kalshiBook: (ticker) => `https://api.elections.kalshi.com/trade-api/v2/markets/${ticker}/orderbook`,
+  // CORS proxy fallback
+  proxy: 'https://corsproxy.io/?url=',
+};
 
 // --- State ---
 let state = {
   balance:10000, startBalance:10000, realizedPnl:0, unrealizedPnl:0,
   positions:[], trades:[], equityCurve:[10000], spreadHistory:[],
-  wins:0, losses:0, tick:0, simTime:0, botActive:true,
-  speed:1000, minSpread:2, maxPos:500, riskMode:'moderate', strategy:'cross',
+  wins:0, losses:0, tick:0, botActive:true,
+  minSpread:2, maxPos:500, riskMode:'moderate', strategy:'cross',
   events:[], maxEquity:10000, maxDrawdown:0, selectedMarket:0,
+  refreshRate:15, lastFetchTime:null, nextRefreshIn:15,
 };
 
-let liveMarkets = [];
+// Raw API data
+let polyMarkets = [];
+let kalshiMarkets = [];
+// Matched cross-platform pairs with live prices
+let matchedMarkets = [];
+// Connection state
+let polyConnected = false;
+let kalshiConnected = false;
+let useProxy = {poly:false, kalshi:false};
+let fetchInProgress = false;
 
-function initMarkets() {
-  liveMarkets = MARKETS.map(m => ({
-    ...m,
-    polyYes: m.basePolyYes + (Math.random()-0.5)*6,
-    kalshiYes: m.baseKalshiYes + (Math.random()-0.5)*6,
-    polyNo: 0, kalshiNo: 0, spread: 0, direction: '', estProfit: 0,
-  }));
-  // Compute initial spreads
-  liveMarkets.forEach(m => {
-    m.polyYes = clamp(m.polyYes, 3, 97);
-    m.kalshiYes = clamp(m.kalshiYes, 3, 97);
-    m.polyNo = 100 - m.polyYes;
-    m.kalshiNo = 100 - m.kalshiYes;
-    computeSpread(m);
-  });
-  liveMarkets.sort((a,b) => b.spread - a.spread);
-}
-
-function fmt(n,d=2){return n.toFixed(d)}
+// --- Utilities ---
+function fmt(n,d=2){return Number(n).toFixed(d)}
 function fmtUsd(n){return(n>=0?'+':'')+n.toLocaleString('en-US',{style:'currency',currency:'USD'})}
 function fmtUsdAbs(n){return n.toLocaleString('en-US',{style:'currency',currency:'USD'})}
 function rand(a,b){return a+Math.random()*(b-a)}
 function randInt(a,b){return Math.floor(rand(a,b+1))}
 function clamp(v,mn,mx){return Math.max(mn,Math.min(mx,v))}
-function timeStr(ms){const s=Math.floor(ms/1000),m=Math.floor(s/60),h=Math.floor(m/60);return`${String(h).padStart(2,'0')}:${String(m%60).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`}
+function timeNow(){return new Date().toLocaleTimeString('en-US',{hour12:false})}
 
-function computeSpread(m) {
-  const sA = m.kalshiYes - m.polyYes;
-  const sB = m.polyYes - m.kalshiYes;
-  if (sA > sB) { m.spread = sA; m.direction = 'Buy Poly → Sell Kalshi'; }
-  else { m.spread = sB; m.direction = 'Buy Kalshi → Sell Poly'; }
-  const totalCost = Math.min(m.polyYes,m.kalshiYes) + Math.min(m.polyNo,m.kalshiNo);
-  if (totalCost < 98) {
-    const alt = 100 - totalCost;
-    if (alt > m.spread) { m.spread = alt; m.direction = 'Multi-leg Hedge'; }
-  }
-  m.estProfit = m.spread * state.maxPos / 100;
+// --- Keyword extraction for market matching ---
+function extractKeywords(text) {
+  const stop = new Set(['the','a','an','in','on','at','to','for','of','by','will','be','is','are','was','were','has','have','had','do','does','did','and','or','but','if','than','that','this','it','its','with','from','as','into','about','above','below','before','after','between','under','over','yes','no','market','contract']);
+  return text.toLowerCase()
+    .replace(/[^a-z0-9\s]/g,' ')
+    .split(/\s+/)
+    .filter(w => w.length > 2 && !stop.has(w));
 }
 
-function tickPrices() {
-  liveMarkets.forEach(m => {
-    const drift = (m.basePolyYes - m.polyYes)*0.02;
-    m.polyYes = clamp(m.polyYes + drift + (Math.random()-0.5)*3.5, 2, 98);
-    const drift2 = (m.baseKalshiYes - m.kalshiYes)*0.02;
-    m.kalshiYes = clamp(m.kalshiYes + drift2 + (Math.random()-0.5)*3.5, 2, 98);
-    if (Math.random()<0.03) {
-      const spike = rand(2,8)*(Math.random()>0.5?1:-1);
-      if(Math.random()>0.5) m.polyYes=clamp(m.polyYes+spike,2,98);
-      else m.kalshiYes=clamp(m.kalshiYes+spike,2,98);
+function matchScore(kwA, kwB) {
+  const setB = new Set(kwB);
+  let matches = 0;
+  for (const w of kwA) {
+    if (setB.has(w)) matches++;
+    else {
+      // Fuzzy: check if any word in B starts with or contains this word
+      for (const b of kwB) {
+        if (b.includes(w) || w.includes(b)) { matches += 0.5; break; }
+      }
     }
-    m.polyNo = 100 - m.polyYes;
-    m.kalshiNo = 100 - m.kalshiYes;
-    computeSpread(m);
-  });
-  liveMarkets.sort((a,b) => b.spread - a.spread);
+  }
+  const total = Math.max(kwA.length, kwB.length);
+  return total > 0 ? matches / total : 0;
 }
 
+// --- API Fetching ---
+async function fetchJSON(url, useProxyFlag) {
+  const fetchUrl = useProxyFlag ? API.proxy + encodeURIComponent(url) : url;
+  const resp = await fetch(fetchUrl);
+  if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+  return resp.json();
+}
+
+async function fetchPolymarkets() {
+  try {
+    polyMarkets = await fetchJSON(API.polyMarkets, useProxy.poly);
+    // Gamma API returns array directly
+    if (!Array.isArray(polyMarkets)) polyMarkets = polyMarkets.data || polyMarkets.markets || [];
+    polyConnected = true;
+    setStatus('poly', 'online', `${polyMarkets.length} mkts`);
+    addEvent('success', `Polymarket: fetched ${polyMarkets.length} active markets`);
+    return true;
+  } catch(e) {
+    if (!useProxy.poly) {
+      addEvent('warning', `Polymarket direct failed (CORS), trying proxy...`);
+      useProxy.poly = true;
+      return fetchPolymarkets();
+    }
+    polyConnected = false;
+    setStatus('poly', 'offline', 'error');
+    addEvent('error', `Polymarket fetch failed: ${e.message}`);
+    return false;
+  }
+}
+
+async function fetchKalshiMarkets() {
+  try {
+    const data = await fetchJSON(API.kalshiMarkets, useProxy.kalshi);
+    kalshiMarkets = data.markets || data || [];
+    kalshiConnected = true;
+    setStatus('kalshi', 'online', `${kalshiMarkets.length} mkts`);
+    addEvent('success', `Kalshi: fetched ${kalshiMarkets.length} open markets`);
+    return true;
+  } catch(e) {
+    if (!useProxy.kalshi) {
+      addEvent('warning', `Kalshi direct failed (CORS), trying proxy...`);
+      useProxy.kalshi = true;
+      return fetchKalshiMarkets();
+    }
+    kalshiConnected = false;
+    setStatus('kalshi', 'offline', 'error');
+    addEvent('error', `Kalshi fetch failed: ${e.message}`);
+    return false;
+  }
+}
+
+function setStatus(platform, status, text) {
+  const dot = document.getElementById(platform === 'poly' ? 'poly-dot' : 'kalshi-dot');
+  const label = document.getElementById(platform === 'poly' ? 'poly-status' : 'kalshi-status');
+  dot.className = 'status-dot ' + status;
+  label.textContent = text;
+}
+
+// --- Market Matching Engine ---
+function matchMarkets() {
+  if (polyMarkets.length === 0 && kalshiMarkets.length === 0) return;
+
+  const pairs = [];
+
+  // Index Kalshi markets by keywords
+  const kalshiIndexed = kalshiMarkets
+    .filter(k => k.status === 'open' || k.status === 'active')
+    .map(k => ({
+      ...k,
+      keywords: extractKeywords(k.title || k.subtitle || ''),
+      yesPrice: parseFloat(k.yes_bid || k.last_price || k.yes_ask || 0) * 100,
+    }))
+    .filter(k => k.yesPrice > 0 && k.yesPrice < 100);
+
+  // For each Polymarket market, find best Kalshi match
+  const usedKalshi = new Set();
+
+  const polyFiltered = polyMarkets
+    .filter(p => p.active !== false && p.closed !== true)
+    .map(p => ({
+      ...p,
+      keywords: extractKeywords(p.question || p.title || p.description || ''),
+      yesPrice: parseFloat(p.bestBid || p.lastTradePrice || p.outcomePrices?.[0] || 0) * 100 ||
+                parseFloat(p.best_bid || p.last_trade_price || 0) * 100,
+    }))
+    .filter(p => p.yesPrice > 0 && p.yesPrice < 100);
+
+  for (const pm of polyFiltered) {
+    let bestMatch = null;
+    let bestScore = 0;
+
+    for (const km of kalshiIndexed) {
+      if (usedKalshi.has(km.ticker)) continue;
+      const score = matchScore(pm.keywords, km.keywords);
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = km;
+      }
+    }
+
+    if (bestMatch && bestScore >= 0.25) {
+      usedKalshi.add(bestMatch.ticker);
+      const polyPrice = pm.yesPrice;
+      const kalshiPrice = bestMatch.yesPrice;
+      const spread = Math.abs(polyPrice - kalshiPrice);
+      let direction;
+      if (polyPrice < kalshiPrice) direction = 'Buy Poly → Sell Kalshi';
+      else direction = 'Buy Kalshi → Sell Poly';
+
+      pairs.push({
+        id: pm.condition_id || pm.id || pm.slug,
+        name: pm.question || pm.title || 'Unknown',
+        kalshiTicker: bestMatch.ticker,
+        kalshiName: bestMatch.title,
+        polyYes: polyPrice,
+        kalshiYes: kalshiPrice,
+        spread,
+        direction,
+        estProfit: spread * state.maxPos / 100,
+        matchScore: bestScore,
+        polyVol: parseFloat(pm.volume24hr || pm.volume || 0),
+        kalshiVol: parseFloat(bestMatch.volume_24h || bestMatch.volume || 0),
+        polyTokenId: pm.clobTokenIds?.[0] || pm.clob_token_ids?.[0] || null,
+        polyData: pm,
+        kalshiData: bestMatch,
+        source: 'matched',
+      });
+    }
+  }
+
+  // Also add unmatched Polymarket markets (with simulated Kalshi price for display)
+  for (const pm of polyFiltered.slice(0, 30)) {
+    if (pairs.find(p => (p.polyData?.condition_id || p.polyData?.id) === (pm.condition_id || pm.id))) continue;
+    pairs.push({
+      id: pm.condition_id || pm.id || pm.slug,
+      name: pm.question || pm.title || 'Unknown',
+      kalshiTicker: null,
+      kalshiName: null,
+      polyYes: pm.yesPrice,
+      kalshiYes: 0,
+      spread: 0,
+      direction: 'Poly only',
+      estProfit: 0,
+      matchScore: 0,
+      polyVol: parseFloat(pm.volume24hr || pm.volume || 0),
+      kalshiVol: 0,
+      polyTokenId: pm.clobTokenIds?.[0] || pm.clob_token_ids?.[0] || null,
+      polyData: pm,
+      kalshiData: null,
+      source: 'poly-only',
+    });
+  }
+
+  // Add unmatched Kalshi markets
+  for (const km of kalshiIndexed.slice(0, 30)) {
+    if (usedKalshi.has(km.ticker)) continue;
+    pairs.push({
+      id: km.ticker,
+      name: km.title || 'Unknown',
+      kalshiTicker: km.ticker,
+      kalshiName: km.title,
+      polyYes: 0,
+      kalshiYes: km.yesPrice,
+      spread: 0,
+      direction: 'Kalshi only',
+      estProfit: 0,
+      matchScore: 0,
+      polyVol: 0,
+      kalshiVol: parseFloat(km.volume_24h || km.volume || 0),
+      polyTokenId: null,
+      polyData: null,
+      kalshiData: km,
+      source: 'kalshi-only',
+    });
+  }
+
+  // Sort: matched pairs with spread first, then by spread desc
+  pairs.sort((a, b) => {
+    if (a.source === 'matched' && b.source !== 'matched') return -1;
+    if (b.source === 'matched' && a.source !== 'matched') return 1;
+    return b.spread - a.spread;
+  });
+
+  matchedMarkets = pairs;
+  document.getElementById('market-count').textContent = pairs.filter(p => p.source === 'matched').length;
+
+  const badge = document.getElementById('data-badge');
+  const matchCount = pairs.filter(p => p.source === 'matched').length;
+  if (polyConnected || kalshiConnected) {
+    badge.className = 'badge badge-live';
+    badge.innerHTML = `<span class="pulse" style="margin-right:3px"></span> LIVE — ${matchCount} PAIRS`;
+  }
+}
+
+// --- Full data refresh ---
+async function refreshAllData() {
+  if (fetchInProgress) return;
+  fetchInProgress = true;
+  addEvent('info', 'Refreshing market data from APIs...');
+
+  await Promise.all([fetchPolymarkets(), fetchKalshiMarkets()]);
+
+  matchMarkets();
+
+  state.lastFetchTime = new Date();
+  state.nextRefreshIn = state.refreshRate;
+  document.getElementById('last-fetch').textContent = timeNow();
+  fetchInProgress = false;
+
+  // Update mode tag
+  const tag = document.getElementById('mode-tag');
+  if (polyConnected || kalshiConnected) {
+    tag.textContent = 'LIVE DATA';
+    tag.className = 'tag tag-live';
+  } else {
+    tag.textContent = 'OFFLINE';
+    tag.className = 'tag';
+    tag.style.background = 'rgba(239,68,68,.15)';
+    tag.style.color = 'var(--red)';
+  }
+
+  // Render immediately
+  renderAll();
+}
+
+// --- Order Book Fetch ---
+async function fetchOrderBook(market) {
+  // Polymarket order book
+  if (market.polyTokenId) {
+    try {
+      const data = await fetchJSON(API.polyBook(market.polyTokenId), useProxy.poly);
+      renderRealOrderBook(data, 'ob-poly');
+    } catch(e) {
+      renderSyntheticOB(market.polyYes, 'ob-poly');
+    }
+  } else {
+    renderSyntheticOB(market.polyYes, 'ob-poly');
+  }
+
+  // Kalshi order book
+  if (market.kalshiTicker) {
+    try {
+      const data = await fetchJSON(API.kalshiBook(market.kalshiTicker), useProxy.kalshi);
+      renderKalshiOB(data, market.kalshiYes);
+    } catch(e) {
+      renderSyntheticOB(market.kalshiYes, 'ob-kalshi');
+    }
+  } else {
+    renderSyntheticOB(market.kalshiYes, 'ob-kalshi');
+  }
+}
+
+function renderRealOrderBook(data, prefix) {
+  const asksEl = document.getElementById(prefix+'-asks');
+  const bidsEl = document.getElementById(prefix+'-bids');
+  const midEl = document.getElementById(prefix+'-mid');
+
+  const bids = (data.bids || []).slice(-5);
+  const asks = (data.asks || []).slice(0, 5);
+
+  const maxQty = Math.max(...[...bids,...asks].map(o => parseFloat(o.size || o[1] || 0)), 1);
+
+  let ah = '', bh = '';
+  for (const a of asks) {
+    const p = parseFloat(a.price || a[0]) * 100;
+    const q = parseFloat(a.size || a[1]);
+    const pct = q / maxQty * 100;
+    ah += `<div class="ob-row ask"><span class="price">${fmt(p)}</span><span class="qty">${Math.round(q)}</span><span class="total">$${fmt(q*p/100)}</span><div class="fill" style="width:${pct}%"></div></div>`;
+  }
+  for (const b of bids) {
+    const p = parseFloat(b.price || b[0]) * 100;
+    const q = parseFloat(b.size || b[1]);
+    const pct = q / maxQty * 100;
+    bh += `<div class="ob-row bid"><span class="price">${fmt(p)}</span><span class="qty">${Math.round(q)}</span><span class="total">$${fmt(q*p/100)}</span><div class="fill" style="width:${pct}%"></div></div>`;
+  }
+
+  asksEl.innerHTML = ah || '<div style="padding:4px;color:var(--text3);font-size:9px">No asks</div>';
+  bidsEl.innerHTML = bh || '<div style="padding:4px;color:var(--text3);font-size:9px">No bids</div>';
+
+  const midPrice = bids.length && asks.length
+    ? ((parseFloat(bids[bids.length-1]?.price||bids[bids.length-1]?.[0]||0) + parseFloat(asks[0]?.price||asks[0]?.[0]||0)) / 2 * 100)
+    : 0;
+  midEl.textContent = midPrice > 0 ? fmt(midPrice) + '¢' : '--';
+}
+
+function renderKalshiOB(data, fallbackPrice) {
+  const asksEl = document.getElementById('ob-kalshi-asks');
+  const bidsEl = document.getElementById('ob-kalshi-bids');
+  const midEl = document.getElementById('ob-kalshi-mid');
+
+  const ob = data.orderbook || data.orderbook_fp || data;
+  const yesBids = ob.yes || ob.yes_dollars || [];
+  const noBids = ob.no || ob.no_dollars || [];
+
+  // Kalshi: yes bids are bids, no bids at price X = yes ask at (100-X)
+  const bids = yesBids.slice(-5).map(e => ({price: parseFloat(e[0])*100, qty: parseFloat(e[1])}));
+  const asks = noBids.slice(-5).map(e => ({price: (1-parseFloat(e[0]))*100, qty: parseFloat(e[1])})).sort((a,b)=>a.price-b.price);
+
+  const maxQty = Math.max(...[...bids,...asks].map(o=>o.qty), 1);
+
+  let ah='', bh='';
+  for (const a of asks) {
+    const pct=a.qty/maxQty*100;
+    ah+=`<div class="ob-row ask"><span class="price">${fmt(a.price)}</span><span class="qty">${Math.round(a.qty)}</span><span class="total">$${fmt(a.qty*a.price/100)}</span><div class="fill" style="width:${pct}%"></div></div>`;
+  }
+  for (const b of bids) {
+    const pct=b.qty/maxQty*100;
+    bh+=`<div class="ob-row bid"><span class="price">${fmt(b.price)}</span><span class="qty">${Math.round(b.qty)}</span><span class="total">$${fmt(b.qty*b.price/100)}</span><div class="fill" style="width:${pct}%"></div></div>`;
+  }
+
+  asksEl.innerHTML = ah || '<div style="padding:4px;color:var(--text3);font-size:9px">No asks</div>';
+  bidsEl.innerHTML = bh || '<div style="padding:4px;color:var(--text3);font-size:9px">No bids</div>';
+
+  const midPrice = bids.length && asks.length ? (bids[bids.length-1].price + asks[0].price)/2 : fallbackPrice;
+  midEl.textContent = midPrice > 0 ? fmt(midPrice) + '¢' : '--';
+}
+
+function renderSyntheticOB(mid, prefix) {
+  const asksEl=document.getElementById(prefix+'-asks');
+  const bidsEl=document.getElementById(prefix+'-bids');
+  const midEl=document.getElementById(prefix+'-mid');
+
+  if (!mid || mid <= 0) {
+    asksEl.innerHTML='<div style="padding:4px;color:var(--text3);font-size:9px">No data</div>';
+    bidsEl.innerHTML='<div style="padding:4px;color:var(--text3);font-size:9px">No data</div>';
+    midEl.textContent='--';
+    return;
+  }
+
+  let ah='',bh='';const mq=500;
+  for(let i=4;i>=1;i--){
+    const p=clamp(mid+i*0.5+rand(0,0.3),1,99),q=randInt(20,400),pct=q/mq*100;
+    ah+=`<div class="ob-row ask"><span class="price">${fmt(p)}</span><span class="qty">${q}</span><span class="total">$${fmt(q*p/100)}</span><div class="fill" style="width:${pct}%"></div></div>`;
+  }
+  for(let i=1;i<=4;i++){
+    const p=clamp(mid-i*0.5-rand(0,0.3),1,99),q=randInt(20,400),pct=q/mq*100;
+    bh+=`<div class="ob-row bid"><span class="price">${fmt(p)}</span><span class="qty">${q}</span><span class="total">$${fmt(q*p/100)}</span><div class="fill" style="width:${pct}%"></div></div>`;
+  }
+  asksEl.innerHTML=ah;bidsEl.innerHTML=bh;
+  midEl.textContent=fmt(mid)+'¢';
+}
+
+// --- Simulated Trading Engine (paper trading on real prices) ---
 function tryExecuteArbs() {
   if (!state.botActive) return;
   const riskMult = state.riskMode==='conservative'?0.5:state.riskMode==='aggressive'?1.5:1;
   const posSize = state.maxPos * riskMult;
 
-  liveMarkets.forEach(m => {
+  matchedMarkets.forEach(m => {
+    if (m.source !== 'matched') return;
     if (m.spread < state.minSpread || state.positions.length >= 8) return;
     if (state.positions.find(p => p.marketId===m.id) || state.balance < posSize) return;
 
     let buyPlat, sellPlat, buyPrice;
     if (m.direction.includes('Buy Poly')) { buyPlat='Polymarket'; sellPlat='Kalshi'; buyPrice=m.polyYes; }
     else if (m.direction.includes('Buy Kalshi')) { buyPlat='Kalshi'; sellPlat='Polymarket'; buyPrice=m.kalshiYes; }
-    else { buyPlat=m.polyYes<m.kalshiYes?'Polymarket':'Kalshi'; sellPlat=m.polyNo<m.kalshiNo?'Polymarket':'Kalshi'; buyPrice=Math.min(m.polyYes,m.kalshiYes); }
+    else return;
 
     const contracts = Math.floor(posSize/(buyPrice/100));
+    if (contracts <= 0) return;
     const cost = contracts*buyPrice/100;
     state.balance -= cost;
 
     state.positions.push({
       id:Date.now()+Math.random(), marketId:m.id, marketName:m.name,
-      buyPlatform:buyPlat, sellPlatform:sellPlat, buyPrice, sellPrice:0,
-      entrySpread:m.spread, contracts, cost, entryTime:state.simTime, side:'LONG',
+      buyPlatform:buyPlat, sellPlatform:sellPlat, buyPrice,
+      entrySpread:m.spread, contracts, cost, entryTick:state.tick, side:'LONG',
     });
-    addTrade('BUY',m.name,buyPlat,buyPrice,cost,0);
-    addEvent('success',`Opened: ${m.name} | ${fmt(m.spread)}% spread`);
+    addTrade('BUY',m.name.slice(0,40),buyPlat,buyPrice,cost,0);
+    addEvent('success',`Opened: ${m.name.slice(0,50)} | ${fmt(m.spread)}% spread`);
   });
 }
 
 function managePositions() {
   const toClose = [];
   state.positions.forEach((pos,i) => {
-    const m = liveMarkets.find(mm=>mm.id===pos.marketId);
+    const m = matchedMarkets.find(mm=>mm.id===pos.marketId);
     if(!m) return;
-    const holdTime = state.simTime - pos.entryTime;
+
+    const holdTicks = state.tick - pos.entryTick;
     const spreadCollapsed = m.spread < 0.5;
     const spreadReversed = m.spread > pos.entrySpread * 2.5;
-    const tooLong = holdTime > 60000;
-    if (spreadCollapsed || spreadReversed || tooLong || Math.random()<0.04) {
+    const tooLong = holdTicks > 30;
+
+    if (spreadCollapsed || spreadReversed || tooLong || Math.random()<0.03) {
       const exitPrice = pos.buyPlatform==='Polymarket'?m.polyYes:m.kalshiYes;
       const exitValue = pos.contracts*exitPrice/100;
       const pnl = (exitValue - pos.cost + pos.entrySpread*pos.contracts/200)*rand(0.4,1.2);
       state.balance += pos.cost + pnl;
       state.realizedPnl += pnl;
       if(pnl>=0) state.wins++; else state.losses++;
-      addTrade('SELL',pos.marketName,pos.sellPlatform,exitPrice,exitValue,pnl);
-      addEvent(pnl>=0?'success':'warning',`Closed: ${pos.marketName} ${fmtUsd(pnl)}`);
+      addTrade('SELL',pos.marketName.slice(0,40),pos.sellPlatform,exitPrice,exitValue,pnl);
+      addEvent(pnl>=0?'success':'warning',`Closed: ${pos.marketName.slice(0,40)} ${fmtUsd(pnl)}`);
       toClose.push(i);
     }
   });
@@ -457,57 +786,53 @@ function managePositions() {
 }
 
 function addTrade(side,market,platform,price,size,pnl) {
-  state.trades.unshift({time:timeStr(state.simTime),side,market,platform,price:fmt(price),size:fmtUsdAbs(Math.abs(size)),pnl:fmt(pnl),pnlNum:pnl});
+  state.trades.unshift({time:timeNow(),side,market,platform,price:fmt(price),size:fmtUsdAbs(Math.abs(size)),pnl:fmt(pnl),pnlNum:pnl});
   if(state.trades.length>200)state.trades.pop();
 }
 function addEvent(type,msg) {
-  state.events.unshift({type,msg,time:timeStr(state.simTime)});
+  state.events.unshift({type,msg,time:timeNow()});
   if(state.events.length>30)state.events.pop();
 }
 
 // --- Canvas Charts ---
 function drawEquityChart() {
-  const canvas = document.getElementById('equity-chart');
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio||1;
-  const rect = canvas.getBoundingClientRect();
+  const canvas=document.getElementById('equity-chart');
+  const ctx=canvas.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.getBoundingClientRect();
   if(rect.width<10||rect.height<10)return;
-  canvas.width=rect.width*dpr; canvas.height=rect.height*dpr;
-  ctx.scale(dpr,dpr);
-  const W=rect.width, H=rect.height;
+  canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+  ctx.scale(dpr,dpr);const W=rect.width,H=rect.height;
   ctx.clearRect(0,0,W,H);
 
   const data=state.equityCurve.slice(-200);
   if(data.length<2)return;
-  const min=Math.min(...data)*0.998, max=Math.max(...data)*1.002, range=max-min||1;
+  const min=Math.min(...data)*0.998,max=Math.max(...data)*1.002,range=max-min||1;
 
-  ctx.strokeStyle='rgba(42,53,80,0.4)'; ctx.lineWidth=0.5;
+  ctx.strokeStyle='rgba(42,53,80,0.4)';ctx.lineWidth=0.5;
   for(let i=0;i<4;i++){const y=H*i/3;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
     ctx.fillStyle='#64748b';ctx.font='9px monospace';ctx.fillText('$'+fmt(max-range*i/3,0),2,y+10);}
 
-  const last=data[data.length-1], isUp=last>=state.startBalance;
+  const last=data[data.length-1],isUp=last>=state.startBalance;
   const grad=ctx.createLinearGradient(0,0,0,H);
   grad.addColorStop(0,isUp?'rgba(16,185,129,0.25)':'rgba(239,68,68,0.25)');
   grad.addColorStop(1,'rgba(10,14,23,0)');
 
   ctx.beginPath();
   data.forEach((v,i)=>{const x=i/(data.length-1)*W,y=H-(v-min)/range*H;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
-  ctx.strokeStyle=isUp?'#10b981':'#ef4444'; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.strokeStyle=isUp?'#10b981':'#ef4444';ctx.lineWidth=1.5;ctx.stroke();
   ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
-
-  ctx.fillStyle=isUp?'#10b981':'#ef4444';ctx.font='bold 11px monospace';
-  ctx.fillText(fmtUsdAbs(last),W-90,14);
+  ctx.fillStyle=isUp?'#10b981':'#ef4444';ctx.font='bold 11px monospace';ctx.fillText(fmtUsdAbs(last),W-90,14);
 }
 
 function drawSpreadChart() {
-  const canvas = document.getElementById('spread-chart');
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio||1;
-  const rect = canvas.getBoundingClientRect();
+  const canvas=document.getElementById('spread-chart');
+  const ctx=canvas.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const rect=canvas.getBoundingClientRect();
   if(rect.width<10||rect.height<10)return;
-  canvas.width=rect.width*dpr; canvas.height=rect.height*dpr;
-  ctx.scale(dpr,dpr);
-  const W=rect.width, H=rect.height;
+  canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;
+  ctx.scale(dpr,dpr);const W=rect.width,H=rect.height;
   ctx.clearRect(0,0,W,H);
 
   const data=state.spreadHistory.slice(-120);
@@ -528,64 +853,55 @@ function drawSpreadChart() {
   if(data.length>0){ctx.fillStyle='#e2e8f0';ctx.font='bold 10px monospace';ctx.fillText(`${fmt(data[data.length-1])}%`,6,14);}
 }
 
-// --- Order Book ---
-function renderOrderBook() {
-  const m=liveMarkets[state.selectedMarket]; if(!m)return;
-  document.getElementById('ob-market').textContent=m.name.slice(0,28);
-
-  function genBook(mid,id) {
-    const asksEl=document.getElementById(id+'-asks'),bidsEl=document.getElementById(id+'-bids'),midEl=document.getElementById(id+'-mid');
-    let ah='',bh='';const mq=500;
-    for(let i=4;i>=1;i--){
-      const p=clamp(mid+i*0.5+rand(0,0.3),1,99),q=randInt(20,400),pct=q/mq*100;
-      ah+=`<div class="ob-row ask"><span class="price">${fmt(p)}</span><span class="qty">${q}</span><span class="total">$${fmt(q*p/100)}</span><div class="fill" style="width:${pct}%"></div></div>`;
-    }
-    for(let i=1;i<=4;i++){
-      const p=clamp(mid-i*0.5-rand(0,0.3),1,99),q=randInt(20,400),pct=q/mq*100;
-      bh+=`<div class="ob-row bid"><span class="price">${fmt(p)}</span><span class="qty">${q}</span><span class="total">$${fmt(q*p/100)}</span><div class="fill" style="width:${pct}%"></div></div>`;
-    }
-    asksEl.innerHTML=ah; bidsEl.innerHTML=bh; midEl.textContent=fmt(mid)+'¢';
-  }
-  genBook(m.polyYes,'ob-poly'); genBook(m.kalshiYes,'ob-kalshi');
-}
-
 // --- UI Rendering ---
 function renderArbTable() {
   const body=document.getElementById('arb-body');
+  if (matchedMarkets.length===0) {
+    body.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--text3);padding:20px">Fetching live market data...</td></tr>';
+    return;
+  }
   let html='';
-  liveMarkets.forEach((m,i)=>{
+  matchedMarkets.slice(0, 50).forEach((m,i)=>{
     const isExec=state.positions.find(p=>p.marketId===m.id);
     const spPct=Math.min(m.spread/10*100,100);
     const spCol=m.spread>=state.minSpread?'var(--green)':'var(--text3)';
-    html+=`<tr class="${isExec?'executing':''} ${i===state.selectedMarket?'selected':''}" onclick="state.selectedMarket=${i}" style="cursor:pointer">
+    const sourceTag = m.source==='matched'?'':m.source==='poly-only'?' <span class="tag-poly" style="font-size:8px;padding:0 3px;border-radius:3px;background:rgba(99,102,241,.15);color:var(--poly)">P</span>':' <span style="font-size:8px;padding:0 3px;border-radius:3px;background:rgba(255,107,53,.15);color:var(--kalshi)">K</span>';
+    html+=`<tr class="${isExec?'executing':''} ${i===state.selectedMarket?'selected':''}" onclick="selectMarket(${i})" style="cursor:pointer">
       <td style="color:var(--text3)">${i+1}</td>
-      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis">${m.name}</td>
-      <td style="color:var(--text2)">${m.category}</td>
-      <td class="price-poly">${fmt(m.polyYes)}¢</td>
-      <td class="price-kalshi">${fmt(m.kalshiYes)}¢</td>
-      <td><div class="spread-bar"><span style="color:${spCol};font-weight:700">${fmt(m.spread)}%</span><div class="spread-fill" style="width:${spPct}px;background:${spCol}"></div></div></td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${m.name.slice(0,55)}${sourceTag}</td>
+      <td class="price-poly">${m.polyYes>0?fmt(m.polyYes)+'¢':'—'}</td>
+      <td class="price-kalshi">${m.kalshiYes>0?fmt(m.kalshiYes)+'¢':'—'}</td>
+      <td><div class="spread-bar"><span style="color:${spCol};font-weight:700">${m.source==='matched'?fmt(m.spread)+'%':'—'}</span>${m.source==='matched'?`<div class="spread-fill" style="width:${spPct}px;background:${spCol}"></div>`:''}</div></td>
       <td style="font-size:9px;color:var(--text2)">${m.direction}</td>
-      <td style="color:${m.estProfit>0?'var(--green)':'var(--text3)'};font-weight:600">$${fmt(m.estProfit)}</td>
-      <td style="color:var(--text2)">$${(m.vol24h/1e6).toFixed(1)}M</td>
-      <td>${isExec?'<span style="color:var(--blue);font-weight:600">ACTIVE</span>':m.spread>=state.minSpread?'<span style="color:var(--green)">READY</span>':'<span style="color:var(--text3)">WATCH</span>'}</td>
+      <td style="color:${m.estProfit>0?'var(--green)':'var(--text3)'};font-weight:600">${m.source==='matched'?'$'+fmt(m.estProfit):'—'}</td>
+      <td style="color:var(--text2)">${m.polyVol>0?'$'+(m.polyVol/1e6).toFixed(1)+'M':m.kalshiVol>0?'$'+(m.kalshiVol/1e3).toFixed(0)+'K':'—'}</td>
+      <td>${isExec?'<span style="color:var(--blue);font-weight:600">ACTIVE</span>':m.source==='matched'&&m.spread>=state.minSpread?'<span style="color:var(--green)">READY</span>':m.source==='matched'?'<span style="color:var(--text3)">WATCH</span>':'<span style="color:var(--text3);font-size:9px">SINGLE</span>'}</td>
     </tr>`;
   });
   body.innerHTML=html;
 }
+
+window.selectMarket = function(i) {
+  state.selectedMarket = i;
+  const m = matchedMarkets[i];
+  if (m) {
+    document.getElementById('ob-market').textContent = m.name.slice(0, 28);
+    fetchOrderBook(m);
+  }
+};
 
 function renderPositions() {
   const body=document.getElementById('pos-body');
   document.getElementById('pos-count').textContent=state.positions.length;
   let html='',totalU=0;
   state.positions.forEach(pos=>{
-    const m=liveMarkets.find(mm=>mm.id===pos.marketId);
+    const m=matchedMarkets.find(mm=>mm.id===pos.marketId);
     const cur=m?(pos.buyPlatform==='Polymarket'?m.polyYes:m.kalshiYes):pos.buyPrice;
     const u=(cur-pos.buyPrice)*pos.contracts/100; totalU+=u;
     html+=`<tr>
-      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis">${pos.marketName}</td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis">${pos.marketName.slice(0,25)}</td>
       <td style="color:${pos.buyPlatform==='Polymarket'?'var(--poly)':'var(--kalshi)'}">${pos.buyPlatform.slice(0,4)}</td>
-      <td>${fmt(pos.buyPrice)}¢</td>
-      <td>${fmt(cur)}¢</td>
+      <td>${fmt(pos.buyPrice)}¢</td><td>${fmt(cur)}¢</td>
       <td>${fmtUsdAbs(pos.cost)}</td>
       <td style="color:${u>=0?'var(--green)':'var(--red)'};font-weight:600">${fmtUsd(u)}</td>
     </tr>`;
@@ -603,8 +919,7 @@ function renderTradeLog() {
       <span class="side-${t.side.toLowerCase()}">${t.side}</span>
       <span style="overflow:hidden;text-overflow:ellipsis">${t.market}</span>
       <span style="color:${t.platform==='Polymarket'?'var(--poly)':'var(--kalshi)'}">${t.platform.slice(0,4)}</span>
-      <span>${t.price}¢</span>
-      <span>${t.size}</span>
+      <span>${t.price}¢</span><span>${t.size}</span>
       <span class="profit ${parseFloat(t.pnl)>=0?'positive':'negative'}">${t.side==='SELL'?fmtUsd(parseFloat(t.pnl)):''}</span>
     </div>`;
   });
@@ -636,10 +951,9 @@ function renderRisk() {
   setM('risk-exp-fill',expPct);setM('risk-dd-fill',state.maxDrawdown,[5,15]);
   setM('risk-var-fill',varVal/state.startBalance*100);setM('risk-margin-fill',marginPct);
 
-  const cats=new Set(state.positions.map(p=>{const m=liveMarkets.find(mm=>mm.id===p.marketId);return m?m.category:''}));
+  const cats=new Set(state.positions.map(p=>{const m=matchedMarkets.find(mm=>mm.id===p.marketId);return m?m.source:''}));
   const cl=cats.size<=1?'Low':cats.size<=3?'Medium':'High';
   document.getElementById('risk-corr').textContent=cl;setM('risk-corr-fill',cats.size*20);
-
   const hr=state.positions.length>0?clamp(1-(dd/20),0.5,1.2):1.0;
   document.getElementById('risk-hedge').textContent=fmt(hr);
   document.getElementById('risk-hedge-fill').style.width=(hr/1.5*100)+'%';
@@ -654,7 +968,6 @@ function renderHeader() {
   document.getElementById('hdr-active').textContent=state.positions.length;
   document.getElementById('hdr-trades').textContent=tot;
   document.getElementById('hdr-balance').textContent=fmtUsdAbs(state.balance);
-
   document.getElementById('pnl-realized').textContent=fmtUsd(state.realizedPnl);
   document.getElementById('pnl-realized').className='val '+(state.realizedPnl>=0?'positive':'negative');
   document.getElementById('pnl-realized-pct').textContent=(state.realizedPnl>=0?'+':'')+fmt(state.realizedPnl/state.startBalance*100)+'%';
@@ -666,78 +979,87 @@ function renderHeader() {
   const avg=tot>0?state.realizedPnl/tot:0;
   document.getElementById('pnl-avg').textContent=fmtUsd(avg);
   document.getElementById('pnl-avg').className='val '+(avg>=0?'positive':'negative');
-
   const returns=[];
-  for(let i=1;i<state.equityCurve.length;i++) returns.push((state.equityCurve[i]-state.equityCurve[i-1])/state.equityCurve[i-1]);
-  if(returns.length>10){
-    const mean=returns.reduce((s,v)=>s+v,0)/returns.length;
-    const std=Math.sqrt(returns.reduce((s,v)=>s+(v-mean)**2,0)/returns.length);
-    document.getElementById('pnl-sharpe').textContent=`Sharpe: ${std>0?fmt((mean/std)*Math.sqrt(252)):'--'}`;
-  }
+  for(let i=1;i<state.equityCurve.length;i++)returns.push((state.equityCurve[i]-state.equityCurve[i-1])/state.equityCurve[i-1]);
+  if(returns.length>10){const mean=returns.reduce((s,v)=>s+v,0)/returns.length;const std=Math.sqrt(returns.reduce((s,v)=>s+(v-mean)**2,0)/returns.length);document.getElementById('pnl-sharpe').textContent=`Sharpe: ${std>0?fmt((mean/std)*Math.sqrt(252)):'--'}`;}
+}
+
+function renderAll() {
+  renderArbTable();renderHeader();renderPositions();renderTradeLog();
+  renderEvents();renderRisk();renderStatusBar();
+  requestAnimationFrame(()=>{drawEquityChart();drawSpreadChart()});
 }
 
 function renderStatusBar() {
-  document.getElementById('sim-clock').textContent=timeStr(state.simTime);
   document.getElementById('tick-count').textContent=state.tick;
-  document.getElementById('latency').textContent=randInt(8,45)+'ms';
-  document.getElementById('bot-pulse').style.display=state.botActive?'':'none';
+  document.getElementById('next-refresh').textContent=state.nextRefreshIn+'s';
 }
 
-// --- Main Loop ---
-let simInterval;
+// --- Main Tick (1s interval for sim + countdown) ---
+let tickInterval;
 
 function tick() {
-  state.tick++; state.simTime+=state.speed;
-  tickPrices();
-  if(state.botActive){tryExecuteArbs();managePositions();}
+  state.tick++;
+  state.nextRefreshIn--;
 
+  // Auto-refresh market data
+  if (state.nextRefreshIn <= 0) {
+    state.nextRefreshIn = state.refreshRate;
+    refreshAllData();
+  }
+
+  // Run sim trading
+  if (state.botActive && matchedMarkets.length > 0) {
+    tryExecuteArbs();
+    managePositions();
+  }
+
+  // Track equity
   const exposure=state.positions.reduce((s,p)=>s+p.cost,0);
   state.equityCurve.push(state.balance+state.unrealizedPnl+exposure);
   if(state.equityCurve.length>500)state.equityCurve.shift();
-  if(liveMarkets.length>0){state.spreadHistory.push(liveMarkets[0].spread);if(state.spreadHistory.length>300)state.spreadHistory.shift();}
 
-  if(Math.random()<0.01){
-    const evts=[['info','Volatility spike detected'],['warning','High latency on Kalshi WS'],['info','New market listed'],['info','Liquidity pool refreshed'],['warning','Position correlation rising'],['success','API rate limits healthy: 847/1000']];
-    const[t,m]=evts[randInt(0,evts.length-1)];addEvent(t,m);
-  }
+  // Track top spread
+  const topMatched = matchedMarkets.find(m=>m.source==='matched');
+  if(topMatched){state.spreadHistory.push(topMatched.spread);if(state.spreadHistory.length>300)state.spreadHistory.shift();}
 
-  renderArbTable();renderHeader();renderPositions();renderTradeLog();
-  renderEvents();renderRisk();renderOrderBook();renderStatusBar();
-  drawEquityChart();drawSpreadChart();
+  renderAll();
 }
 
-function startSim(){clearInterval(simInterval);simInterval=setInterval(tick,state.speed)}
+function startTicker() {
+  clearInterval(tickInterval);
+  tickInterval = setInterval(tick, 1000);
+}
 
 function resetSim() {
-  clearInterval(simInterval);
-  state={balance:10000,startBalance:10000,realizedPnl:0,unrealizedPnl:0,positions:[],trades:[],equityCurve:[10000],spreadHistory:[],wins:0,losses:0,tick:0,simTime:0,botActive:document.getElementById('bot-toggle').checked,speed:parseInt(document.getElementById('sim-speed').value),minSpread:parseFloat(document.getElementById('min-spread').value),maxPos:parseFloat(document.getElementById('max-pos').value),riskMode:document.getElementById('risk-mode').value,strategy:state.strategy,events:[{type:'info',msg:'Simulation reset.',time:'00:00:00'}],maxEquity:10000,maxDrawdown:0,selectedMarket:0};
-  initMarkets(); startSim();
+  state.balance=10000;state.startBalance=10000;state.realizedPnl=0;state.unrealizedPnl=0;
+  state.positions=[];state.trades=[];state.equityCurve=[10000];state.spreadHistory=[];
+  state.wins=0;state.losses=0;state.tick=0;state.maxEquity=10000;state.maxDrawdown=0;
+  state.events=[{type:'info',msg:'Simulation reset. Positions cleared.',time:timeNow()}];
+  renderAll();
 }
 
 // --- Events ---
-document.getElementById('bot-toggle').addEventListener('change',e=>{state.botActive=e.target.checked;addEvent(e.target.checked?'success':'warning','Bot '+(e.target.checked?'ACTIVATED':'PAUSED'))});
-document.getElementById('sim-speed').addEventListener('change',e=>{state.speed=parseInt(e.target.value);startSim()});
+document.getElementById('bot-toggle').addEventListener('change',e=>{state.botActive=e.target.checked;addEvent(e.target.checked?'success':'warning','Bot '+(e.target.checked?'ACTIVATED':'PAUSED'));document.getElementById('bot-pulse').style.display=state.botActive?'':'none'});
+document.getElementById('refresh-rate').addEventListener('change',e=>{state.refreshRate=parseInt(e.target.value);addEvent('info',`Refresh rate: ${state.refreshRate}s`)});
 document.getElementById('min-spread').addEventListener('change',e=>{state.minSpread=parseFloat(e.target.value);addEvent('info',`Min spread: ${state.minSpread}%`)});
 document.getElementById('max-pos').addEventListener('change',e=>{state.maxPos=parseFloat(e.target.value);addEvent('info',`Max position: $${state.maxPos}`)});
 document.getElementById('risk-mode').addEventListener('change',e=>{state.riskMode=e.target.value;addEvent('info',`Risk: ${state.riskMode}`)});
 document.getElementById('btn-reset').addEventListener('click',resetSim);
+document.getElementById('btn-refresh').addEventListener('click',()=>{state.nextRefreshIn=0});
 document.querySelectorAll('[data-strat]').forEach(btn=>{btn.addEventListener('click',e=>{document.querySelectorAll('[data-strat]').forEach(b=>b.classList.remove('active'));e.target.classList.add('active');state.strategy=e.target.dataset.strat;addEvent('info',`Strategy: ${state.strategy}`)})});
 
-// --- Init: populate markets immediately, render first frame, then start ---
-initMarkets();
-addEvent('info','ArbEdge v2.0 initialized');
-addEvent('success','Connected to Polymarket WebSocket');
-addEvent('success','Connected to Kalshi REST API');
-addEvent('info','Loaded 18 cross-listed markets');
+// --- Boot ---
+addEvent('info','ArbEdge v3.0 — Live Market Data Mode');
+addEvent('info','Connecting to Polymarket & Kalshi APIs...');
+renderAll();
 
-// Render first frame synchronously so markets show instantly
-renderArbTable();renderHeader();renderPositions();renderTradeLog();
-renderEvents();renderRisk();renderOrderBook();renderStatusBar();
-
-// Defer chart draws to after layout
-requestAnimationFrame(()=>{drawEquityChart();drawSpreadChart()});
-
-startSim();
+// Fetch data then start ticker
+refreshAllData().then(() => {
+  startTicker();
+  // Fetch order book for first market
+  if (matchedMarkets.length > 0) fetchOrderBook(matchedMarkets[0]);
+});
 </script>
 </body>
 </html>
